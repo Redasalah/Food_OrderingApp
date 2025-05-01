@@ -44,10 +44,11 @@ public class AuthService {
 
         String token = tokenProvider.generateToken(authentication);
         
+        // Modified to work with a single 'name' field instead of firstName + lastName
         return new AuthResponse(
                 token,
                 user.getId(),
-                user.getFirstName() + " " + user.getLastName(),
+                user.getName(), // Use name directly instead of concatenating
                 user.getEmail(),
                 user.getRole()
         );
@@ -59,8 +60,8 @@ public class AuthService {
         }
 
         User user = new User();
-        user.setFirstName(registerRequest.getFirstName());
-        user.setLastName(registerRequest.getLastName());
+        // Combine firstName and lastName into a single name field
+        user.setName(registerRequest.getFirstName() + " " + registerRequest.getLastName());
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         

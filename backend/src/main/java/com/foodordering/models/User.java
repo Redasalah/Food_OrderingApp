@@ -11,10 +11,7 @@ public class User {
     private Long id;
     
     @Column(nullable = false)
-    private String firstName;
-    
-    @Column(nullable = false)
-    private String lastName;
+    private String name;
     
     @Column(nullable = false, unique = true)
     private String email;
@@ -32,10 +29,9 @@ public class User {
     public User() {
     }
     
-    public User(Long id, String firstName, String lastName, String email, String password, Role role, String phoneNumber) {
+    public User(Long id, String name, String email, String password, Role role, String phoneNumber) {
         this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.name = name;
         this.email = email;
         this.password = password;
         this.role = role;
@@ -50,20 +46,45 @@ public class User {
         this.id = id;
     }
     
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    // For compatibility with the current code that uses firstName and lastName
     public String getFirstName() {
-        return firstName;
+        if (name == null) return "";
+        int spaceIndex = name.indexOf(' ');
+        return spaceIndex > 0 ? name.substring(0, spaceIndex) : name;
     }
     
     public void setFirstName(String firstName) {
-        this.firstName = firstName;
+        // If lastName is already set through the getter, combine them
+        String lastName = getLastName();
+        if (lastName.isEmpty()) {
+            this.name = firstName;
+        } else {
+            this.name = firstName + " " + lastName;
+        }
     }
     
     public String getLastName() {
-        return lastName;
+        if (name == null) return "";
+        int spaceIndex = name.indexOf(' ');
+        return spaceIndex > 0 ? name.substring(spaceIndex + 1) : "";
     }
     
     public void setLastName(String lastName) {
-        this.lastName = lastName;
+        // If firstName is already set through the getter, combine them
+        String firstName = getFirstName();
+        if (firstName.isEmpty()) {
+            this.name = lastName;
+        } else {
+            this.name = firstName + " " + lastName;
+        }
     }
     
     public String getEmail() {

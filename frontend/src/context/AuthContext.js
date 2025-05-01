@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import axios from 'axios';
 import authApi from '../api/authApi';
 
 // Create the Auth Context
@@ -22,8 +23,16 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('token');
     
     if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+      const userData = JSON.parse(storedUser);
+      setUser(userData);
       setIsAuthenticated(true);
+      
+      // Set authorization header for all future requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      console.log('User authenticated from localStorage:', userData);
+    } else {
+      console.log('No stored authentication found');
     }
     
     setLoading(false);
@@ -32,9 +41,12 @@ export function AuthProvider({ children }) {
   // Login function
   const login = async (email, password) => {
     try {
+      console.log('Attempting login for:', email);
       const response = await authApi.login(email, password);
       
       if (response.success) {
+        console.log('Login successful:', response.data);
+        
         const userData = {
           id: response.data.id,
           name: response.data.name,
@@ -46,28 +58,38 @@ export function AuthProvider({ children }) {
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('token', response.data.token);
         
+        // Set authorization header for all future requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        
         // Update state
         setUser(userData);
         setIsAuthenticated(true);
         
         return { success: true };
       } else {
+        console.error('Login failed:', response.error);
         return { success: false, error: response.error };
       }
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: 'An unexpected error occurred. Please try again.' };
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'An unexpected error occurred. Please try again.' 
+      };
     }
   };
   
   // Register function
   const register = async (userData) => {
     try {
+      console.log('Attempting registration for:', userData.email);
       const response = await authApi.register(userData);
       
       if (response.success) {
+        console.log('Registration successful');
         return { success: true };
       } else {
+        console.error('Registration failed:', response.error);
         if (response.validationErrors) {
           return { success: false, validationErrors: response.validationErrors };
         }
@@ -75,14 +97,25 @@ export function AuthProvider({ children }) {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      return { success: false, error: 'An unexpected error occurred. Please try again.' };
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'An unexpected error occurred. Please try again.' 
+      };
     }
   };
   
   // Logout function
   const logout = () => {
+    console.log('Logging out user');
+    
+    // Clear localStorage
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    
+    // Clear authorization header
+    delete axios.defaults.headers.common['Authorization'];
+    
+    // Update state
     setUser(null);
     setIsAuthenticated(false);
   };
@@ -90,6 +123,8 @@ export function AuthProvider({ children }) {
   // Get dashboard URL based on user role
   const getDashboardUrl = () => {
     if (!user) return '/login';
+    
+    console.log('Getting dashboard URL for role:', user.role);
     
     switch (user.role) {
       case 'RESTAURANT_STAFF':
@@ -101,6 +136,7 @@ export function AuthProvider({ children }) {
     }
   };
   
+  // Create the context value
   const value = {
     user,
     isAuthenticated,
