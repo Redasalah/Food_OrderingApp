@@ -60,10 +60,15 @@ const Navbar = () => {
             </Link>
           </li>
           <li className="navbar-item">
+          <Link to="/restaurants" className="navbar-link">
+  Restaurants
+</Link></li>
+          <li className="navbar-item">
             <Link to="/signup" className={`navbar-link ${isActive('/signup') ? 'active' : ''}`}>
               Sign Up
             </Link>
           </li>
+          
         </>
       );
     }
