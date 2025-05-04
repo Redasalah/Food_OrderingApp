@@ -1,3 +1,4 @@
+// frontend/src/api/restaurantApi.js
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api/public/restaurants';
@@ -51,36 +52,6 @@ const restaurantApi = {
           deliveryFee: 3.99,
           imageUrl: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
           priceRange: '$$$'
-        },
-        {
-          id: '4',
-          name: 'Taco Time',
-          cuisine: 'Mexican',
-          rating: 4.6,
-          deliveryTime: '20-30 min',
-          deliveryFee: 2.49,
-          imageUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-          priceRange: '$'
-        },
-        {
-          id: '5',
-          name: 'Pho Delight',
-          cuisine: 'Vietnamese',
-          rating: 4.7,
-          deliveryTime: '25-40 min',
-          deliveryFee: 2.99,
-          imageUrl: 'https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-          priceRange: '$$'
-        },
-        {
-          id: '6',
-          name: 'Curry House',
-          cuisine: 'Indian',
-          rating: 4.8,
-          deliveryTime: '30-45 min',
-          deliveryFee: 3.49,
-          imageUrl: 'https://images.unsplash.com/photo-1505253758473-96b7015fcd40?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-          priceRange: '$$'
         }
       ];
       
@@ -165,6 +136,47 @@ const restaurantApi = {
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to load restaurant menu.' 
+      };
+    }
+  },
+  
+  // Get restaurants owned by the logged-in user
+  getMyRestaurants: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `http://localhost:8080/api/restaurants/owner`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error fetching user restaurants:', error);
+      
+      // For development only - mock data 
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Using mock restaurant data for development');
+        const mockData = [
+          {
+            id: 1,
+            name: 'My Restaurant',
+            cuisine: 'Italian',
+            address: '123 Main St',
+            rating: 4.5,
+            deliveryTime: '25-35 min',
+            deliveryFee: 2.99,
+            imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'
+          }
+        ];
+        return { success: true, data: mockData };
+      }
+      
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to fetch restaurants. Please try again.' 
       };
     }
   }
