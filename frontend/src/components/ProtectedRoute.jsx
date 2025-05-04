@@ -22,9 +22,9 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     if (user.role === 'CUSTOMER') {
       return <Navigate to="/dashboard" />;
     } else if (user.role === 'RESTAURANT_STAFF') {
-      return <Navigate to="/restaurant/restaurantdashboard" />;
+      return <Navigate to="/restaurant/dashboard" />;
     } else if (user.role === 'DELIVERY_PERSONNEL') {
-      return <Navigate to="/delivery-dashboard" />;
+      return <Navigate to="/delivery/dashboard" />;
     }
   }
   

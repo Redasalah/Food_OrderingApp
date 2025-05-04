@@ -1,3 +1,4 @@
+// frontend/src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -15,9 +16,17 @@ import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
 import NotFound from './pages/NotFound';
 
+// Restaurant Pages
+import RestaurantDashboard from './pages/restaurant/RestaurantDashboard';
+import CreateRestaurant from './pages/restaurant/CreateRestaurant';
+import ManageMenu from './pages/restaurant/ManageMenu';
+import OrderProcessing from './pages/restaurant/OrderProcessing';
+import RestaurantSettings from './pages/restaurant/RestaurantSettings';
+
 // Components
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+import RestaurantNavbar from './components/RestaurantNavbar';
 import Footer from './components/Footer';
 
 // Styles
@@ -35,11 +44,11 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               
-              {/* Protected Dashboard route */}
+              {/* Protected Dashboard route for customers */}
               <Route
                 path="/dashboard"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRole="CUSTOMER">
                     <Navbar />
                     <Dashboard />
                     <Footer />
@@ -47,7 +56,59 @@ function App() {
                 }
               />
               
-              {/* Restaurant routes */}
+              {/* Restaurant Owner Routes */}
+              <Route
+                path="/restaurant/dashboard"
+                element={
+                  <ProtectedRoute requiredRole="RESTAURANT_STAFF">
+                    <RestaurantNavbar />
+                    <RestaurantDashboard />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/restaurant/create"
+                element={
+                  <ProtectedRoute requiredRole="RESTAURANT_STAFF">
+                    <RestaurantNavbar />
+                    <CreateRestaurant />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/restaurant/menu"
+                element={
+                  <ProtectedRoute requiredRole="RESTAURANT_STAFF">
+                    <RestaurantNavbar />
+                    <ManageMenu />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/restaurant/orders"
+                element={
+                  <ProtectedRoute requiredRole="RESTAURANT_STAFF">
+                    <RestaurantNavbar />
+                    <OrderProcessing />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/restaurant/settings"
+                element={
+                  <ProtectedRoute requiredRole="RESTAURANT_STAFF">
+                    <RestaurantNavbar />
+                    <RestaurantSettings />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Other existing routes */}
               <Route
                 path="/restaurants"
                 element={
@@ -70,7 +131,6 @@ function App() {
                 }
               />
               
-              {/* Cart and checkout routes */}
               <Route
                 path="/cart"
                 element={
