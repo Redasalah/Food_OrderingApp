@@ -1,6 +1,7 @@
 // src/pages/restaurant/CreateRestaurant.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import restaurantApi from '../../api/restaurantApi';
 import '../../styles/restaurant/CreateRestaurant.css';
 
 const CreateRestaurant = () => {
@@ -12,15 +13,15 @@ const CreateRestaurant = () => {
     description: '',
     address: '',
     phoneNumber: '',
-    email: '',
-    openingHours: '',
+    imageUrl: '',
     deliveryFee: 2.99,
-    minimumOrderAmount: 10.00,
-    imageUrl: ''
+    deliveryTime: '30-45 min',
+    priceRange: '$$'
   });
   
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
   const cuisineTypes = [
     'Italian', 'Chinese', 'Indian', 'Mexican', 'Japanese', 
@@ -51,6 +52,11 @@ const CreateRestaurant = () => {
         ...errors,
         [name]: ''
       });
+    }
+    
+    // Clear success message when user types
+    if (successMessage) {
+      setSuccessMessage('');
     }
   };
   
@@ -85,21 +91,38 @@ const CreateRestaurant = () => {
       setIsSubmitting(true);
       
       try {
-        // In a real app, make an API call to create the restaurant
-        console.log('Creating restaurant with data:', formData);
+        console.log('Submitting restaurant data:', formData);
         
-        // Simulate API call with delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Make API call to create the restaurant
+        const response = await restaurantApi.createRestaurant(formData);
         
-        // Show success message
-        alert('Restaurant created successfully!');
-        
-        // Redirect to dashboard
-        navigate('/restaurant/dashboard');
+        if (response.success) {
+          setSuccessMessage('Restaurant created successfully!');
+          console.log('Restaurant created:', response.data);
+          
+          // Wait a moment, then redirect to restaurant dashboard
+          setTimeout(() => {
+            navigate('/restaurant/dashboard');
+          }, 1500);
+        } else {
+          if (response.validationErrors) {
+            // Handle validation errors
+            const apiErrors = {};
+            Object.entries(response.validationErrors).forEach(([key, value]) => {
+              apiErrors[key] = value;
+            });
+            setErrors(apiErrors);
+          } else {
+            // Handle general error
+            setErrors({
+              form: response.error || 'Failed to create restaurant. Please try again.'
+            });
+          }
+        }
       } catch (error) {
         console.error('Error creating restaurant:', error);
         setErrors({
-          form: 'Failed to create restaurant. Please try again.'
+          form: 'An unexpected error occurred. Please try again.'
         });
       } finally {
         setIsSubmitting(false);
@@ -113,6 +136,10 @@ const CreateRestaurant = () => {
         <h1>Create Your Restaurant</h1>
         <p>Set up your restaurant profile to start receiving orders</p>
       </div>
+      
+      {successMessage && (
+        <div className="success-message">{successMessage}</div>
+      )}
       
       <form className="create-restaurant-form" onSubmit={handleSubmit}>
         {errors.form && <div className="error-message">{errors.form}</div>}
@@ -191,33 +218,10 @@ const CreateRestaurant = () => {
             />
             {errors.phoneNumber && <div className="error-message">{errors.phoneNumber}</div>}
           </div>
-          
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
         </div>
         
         <div className="form-section">
           <h2>Business Details</h2>
-          
-          <div className="form-group">
-            <label htmlFor="openingHours">Opening Hours</label>
-            <input
-              type="text"
-              id="openingHours"
-              name="openingHours"
-              value={formData.openingHours}
-              onChange={handleChange}
-              placeholder="e.g. Mon-Fri 9am-10pm, Sat-Sun 10am-11pm"
-            />
-          </div>
           
           <div className="form-row">
             <div className="form-group">
@@ -234,17 +238,31 @@ const CreateRestaurant = () => {
             </div>
             
             <div className="form-group">
-              <label htmlFor="minimumOrderAmount">Minimum Order ($)</label>
+              <label htmlFor="deliveryTime">Delivery Time</label>
               <input
-                type="number"
-                id="minimumOrderAmount"
-                name="minimumOrderAmount"
-                value={formData.minimumOrderAmount}
+                type="text"
+                id="deliveryTime"
+                name="deliveryTime"
+                value={formData.deliveryTime}
                 onChange={handleChange}
-                step="0.01"
-                min="0"
+                placeholder="e.g. 30-45 min"
               />
             </div>
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="priceRange">Price Range</label>
+            <select
+              id="priceRange"
+              name="priceRange"
+              value={formData.priceRange}
+              onChange={handleChange}
+            >
+              <option value="$">$ (Budget)</option>
+              <option value="$$">$$ (Moderate)</option>
+              <option value="$$$">$$$ (Expensive)</option>
+              <option value="$$$$">$$$$ (Very Expensive)</option>
+            </select>
           </div>
         </div>
         

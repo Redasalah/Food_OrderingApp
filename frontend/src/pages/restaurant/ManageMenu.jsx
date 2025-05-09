@@ -1,11 +1,13 @@
-// frontend/src/pages/restaurant/ManageMenu.jsx
+// src/pages/restaurant/ManageMenu.jsx
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import menuItemApi from '../../api/menuItemApi';
 import restaurantApi from '../../api/restaurantApi';
+import menuItemApi from '../../api/menuItemApi';
 import '../../styles/restaurant/ManageMenu.css';
 
 const ManageMenu = () => {
+  const location = useLocation();
   const { user } = useAuth();
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
@@ -13,14 +15,15 @@ const ManageMenu = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Form state
+  // Form state for new menu item
   const [newMenuItem, setNewMenuItem] = useState({
     name: '',
     description: '',
     price: '',
     imageUrl: '',
     category: '',
-    popular: false
+    popular: false,
+    available: true
   });
   
   const [formErrors, setFormErrors] = useState({});
@@ -33,23 +36,38 @@ const ManageMenu = () => {
   ];
   
   useEffect(() => {
+    // Get restaurant ID from URL query parameter if available
+    const queryParams = new URLSearchParams(location.search);
+    const restaurantIdParam = queryParams.get('id');
+    
     const fetchRestaurants = async () => {
       try {
-        // Fetch restaurants owned by the user
+        setLoading(true);
         const response = await restaurantApi.getMyRestaurants();
         
         if (response.success) {
-          setRestaurants(response.data);
+          const restaurantList = response.data;
+          setRestaurants(restaurantList);
           
-          // Select the first restaurant by default
-          if (response.data.length > 0) {
-            setSelectedRestaurant(response.data[0]);
-            fetchMenuItems(response.data[0].id);
+          if (restaurantList.length > 0) {
+            // If restaurantId param exists, find that restaurant
+            if (restaurantIdParam) {
+              const matchingRestaurant = restaurantList.find(r => r.id.toString() === restaurantIdParam);
+              if (matchingRestaurant) {
+                setSelectedRestaurant(matchingRestaurant);
+                fetchMenuItems(matchingRestaurant.id);
+                return;
+              }
+            }
+            
+            // Otherwise select the first restaurant
+            setSelectedRestaurant(restaurantList[0]);
+            fetchMenuItems(restaurantList[0].id);
           } else {
             setLoading(false);
           }
         } else {
-          setError('Failed to fetch your restaurants. Please try again later.');
+          setError(response.error || 'Failed to load your restaurants.');
           setLoading(false);
         }
       } catch (err) {
@@ -60,20 +78,20 @@ const ManageMenu = () => {
     };
     
     fetchRestaurants();
-  }, []);
+  }, [location.search]);
   
   const fetchMenuItems = async (restaurantId) => {
-    setLoading(true);
     try {
       const response = await menuItemApi.getMenuItems(restaurantId);
       
       if (response.success) {
         setMenuItems(response.data);
       } else {
-        setError(response.error);
+        setError(response.error || 'Failed to load menu items.');
       }
     } catch (err) {
-      setError('Failed to fetch menu items. Please try again later.');
+      console.error('Error fetching menu items:', err);
+      setError('Failed to load menu items. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -162,14 +180,16 @@ const ManageMenu = () => {
             price: '',
             imageUrl: '',
             category: '',
-            popular: false
+            popular: false,
+            available: true
           });
           
           setSuccessMessage('Menu item added successfully!');
         } else {
-          setFormErrors({ form: response.error });
+          setFormErrors({ form: response.error || 'Failed to add menu item.' });
         }
       } catch (error) {
+        console.error('Error adding menu item:', error);
         setFormErrors({ form: 'An unexpected error occurred. Please try again.' });
       } finally {
         setIsSubmitting(false);
@@ -187,9 +207,10 @@ const ManageMenu = () => {
           setMenuItems(menuItems.filter(item => item.id !== id));
           setSuccessMessage('Menu item deleted successfully!');
         } else {
-          setError(response.error);
+          setError(response.error || 'Failed to delete menu item.');
         }
       } catch (err) {
+        console.error('Error deleting menu item:', err);
         setError('Failed to delete menu item. Please try again later.');
       }
     }
@@ -204,7 +225,7 @@ const ManageMenu = () => {
     return acc;
   }, {});
   
-  if (loading && restaurants.length === 0) {
+  if (loading) {
     return (
       <div className="manage-menu-container">
         <div className="loading-spinner">Loading...</div>
@@ -338,6 +359,17 @@ const ManageMenu = () => {
                   <label htmlFor="popular">Mark as Popular</label>
                 </div>
                 
+                <div className="form-group checkbox-group">
+                  <input
+                    type="checkbox"
+                    id="available"
+                    name="available"
+                    checked={newMenuItem.available}
+                    onChange={handleChange}
+                  />
+                  <label htmlFor="available">Available (uncheck to hide from menu)</label>
+                </div>
+                
                 <button 
                   type="submit" 
                   className="add-item-button" 
@@ -363,6 +395,7 @@ const ManageMenu = () => {
                           <div className="menu-item-header">
                             <h4>{item.name}</h4>
                             {item.popular && <span className="popular-badge">Popular</span>}
+                            {!item.available && <span className="unavailable-badge">Not Available</span>}
                           </div>
                           <p className="menu-item-description">{item.description}</p>
                           <div className="menu-item-footer">

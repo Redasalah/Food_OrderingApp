@@ -16,9 +16,12 @@ import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
 import NotFound from './pages/NotFound';
 
-
+// Restaurant Pages
 import RestaurantDashboard from './pages/restaurant/RestaurantDashboard';
 import CreateRestaurant from './pages/restaurant/CreateRestaurant';
+import ManageMenu from './pages/restaurant/ManageMenu';
+import OrderProcessing from './pages/restaurant/OrderProcessing';
+import RestaurantSettings from './pages/restaurant/RestaurantSettings';
 
 // Components
 import ProtectedRoute from './components/ProtectedRoute';
@@ -26,40 +29,8 @@ import Navbar from './components/Navbar';
 import RestaurantNavbar from './components/RestaurantNavbar';
 import Footer from './components/Footer';
 
-
-
 // Styles
 import './App.css';
-
-<RestaurantDashboard />
-
-const CreateRestaurantTemp = () => (
-  <div style={{ padding: '40px' }}>
-    <h1>Create Restaurant</h1>
-    <p>Setup your restaurant profile and start receiving orders.</p>
-  </div>
-);
-
-const ManageMenuTemp = () => (
-  <div style={{ padding: '40px' }}>
-    <h1>Menu Management</h1>
-    <p>Add, edit, and organize your menu items here.</p>
-  </div>
-);
-
-const OrderProcessingTemp = () => (
-  <div style={{ padding: '40px' }}>
-    <h1>Order Processing</h1>
-    <p>View and manage incoming orders.</p>
-  </div>
-);
-
-const RestaurantSettingsTemp = () => (
-  <div style={{ padding: '40px' }}>
-    <h1>Restaurant Settings</h1>
-    <p>Configure your restaurant settings and preferences.</p>
-  </div>
-);
 
 function App() {
   return (
@@ -97,44 +68,45 @@ function App() {
                 }
               />
               
-
-<Route
-  path="/restaurant/create"
-  element={
-    <ProtectedRoute requiredRole="RESTAURANT_STAFF">
-      <RestaurantNavbar />
-      <CreateRestaurant />
-      <Footer />
-    </ProtectedRoute>
-  }
-/>
+              <Route
+                path="/restaurant/create"
+                element={
+                  <ProtectedRoute requiredRole="RESTAURANT_STAFF">
+                    <RestaurantNavbar />
+                    <CreateRestaurant />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
 
               <Route
                 path="/restaurant/menu"
                 element={
                   <ProtectedRoute requiredRole="RESTAURANT_STAFF">
                     <RestaurantNavbar />
-                    <ManageMenuTemp />
+                    <ManageMenu />
                     <Footer />
                   </ProtectedRoute>
                 }
               />
+              
               <Route
                 path="/restaurant/orders"
                 element={
                   <ProtectedRoute requiredRole="RESTAURANT_STAFF">
                     <RestaurantNavbar />
-                    <OrderProcessingTemp />
+                    <OrderProcessing />
                     <Footer />
                   </ProtectedRoute>
                 }
               />
+              
               <Route
                 path="/restaurant/settings"
                 element={
                   <ProtectedRoute requiredRole="RESTAURANT_STAFF">
                     <RestaurantNavbar />
-                    <RestaurantSettingsTemp />
+                    <RestaurantSettings />
                     <Footer />
                   </ProtectedRoute>
                 }

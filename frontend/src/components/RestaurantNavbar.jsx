@@ -19,6 +19,14 @@ const RestaurantNavbar = () => {
   const isActive = (path) => {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
+
+  // Get restaurant ID from URL query parameter if available
+  const getUrlParams = () => {
+    const queryParams = new URLSearchParams(location.search);
+    const restaurantId = queryParams.get('id');
+    
+    return restaurantId ? `?id=${restaurantId}` : '';
+  };
   
   return (
     <nav className="restaurant-navbar">
@@ -45,7 +53,7 @@ const RestaurantNavbar = () => {
           </li>
           <li className="navbar-item">
             <Link 
-              to="/restaurant/menu" 
+              to={`/restaurant/menu${getUrlParams()}`}
               className={`navbar-link ${isActive('/restaurant/menu') ? 'active' : ''}`}
             >
               Menu Management
@@ -53,7 +61,7 @@ const RestaurantNavbar = () => {
           </li>
           <li className="navbar-item">
             <Link 
-              to="/restaurant/orders" 
+              to={`/restaurant/orders${getUrlParams()}`}
               className={`navbar-link ${isActive('/restaurant/orders') ? 'active' : ''}`}
             >
               Orders
@@ -61,7 +69,7 @@ const RestaurantNavbar = () => {
           </li>
           <li className="navbar-item">
             <Link 
-              to="/restaurant/settings" 
+              to={`/restaurant/settings${getUrlParams()}`}
               className={`navbar-link ${isActive('/restaurant/settings') ? 'active' : ''}`}
             >
               Settings

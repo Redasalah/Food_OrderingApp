@@ -1,10 +1,8 @@
-// backend/src/main/java/com/foodordering/services/RestaurantService.java
 package com.foodordering.services;
 
 import com.foodordering.dtos.requests.RestaurantRequest;
 import com.foodordering.dtos.responses.MenuItemResponse;
 import com.foodordering.dtos.responses.RestaurantResponse;
-
 import com.foodordering.exceptions.ResourceNotFoundException;
 import com.foodordering.models.MenuItem;
 import com.foodordering.models.Restaurant;
@@ -30,7 +28,7 @@ public class RestaurantService {
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
         
-       
+        // No role check - allow any user to create a restaurant
         
         Restaurant restaurant = new Restaurant();
         restaurant.setName(restaurantRequest.getName());
@@ -83,6 +81,42 @@ public class RestaurantService {
                 .collect(Collectors.toList());
     }
     
+    public RestaurantResponse updateRestaurant(Long userId, Long restaurantId, RestaurantRequest restaurantRequest) {
+        Restaurant restaurant = restaurantRepository.findByIdAndOwnerId(restaurantId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found or you don't have permission to update it"));
+        
+        // Update restaurant details
+        restaurant.setName(restaurantRequest.getName());
+        restaurant.setCuisine(restaurantRequest.getCuisine());
+        restaurant.setDescription(restaurantRequest.getDescription());
+        restaurant.setAddress(restaurantRequest.getAddress());
+        restaurant.setPhoneNumber(restaurantRequest.getPhoneNumber());
+        restaurant.setImageUrl(restaurantRequest.getImageUrl());
+        
+        if (restaurantRequest.getDeliveryFee() != null) {
+            restaurant.setDeliveryFee(restaurantRequest.getDeliveryFee());
+        }
+        
+        if (restaurantRequest.getDeliveryTime() != null) {
+            restaurant.setDeliveryTime(restaurantRequest.getDeliveryTime());
+        }
+        
+        if (restaurantRequest.getPriceRange() != null) {
+            restaurant.setPriceRange(restaurantRequest.getPriceRange());
+        }
+        
+        Restaurant updatedRestaurant = restaurantRepository.save(restaurant);
+        
+        return convertToResponse(updatedRestaurant);
+    }
+    
+    public void deleteRestaurant(Long userId, Long restaurantId) {
+        Restaurant restaurant = restaurantRepository.findByIdAndOwnerId(restaurantId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found or you don't have permission to delete it"));
+        
+        restaurantRepository.delete(restaurant);
+    }
+    
     private RestaurantResponse convertToResponse(Restaurant restaurant) {
         RestaurantResponse response = new RestaurantResponse();
         response.setId(restaurant.getId());
@@ -109,17 +143,16 @@ public class RestaurantService {
         
         return response;
     }
-    
-private MenuItemResponse convertMenuItemToResponse(MenuItem menuItem) {
-    MenuItemResponse response = new MenuItemResponse();
-    response.setId(menuItem.getId());
-    response.setName(menuItem.getName());
-    response.setDescription(menuItem.getDescription());
-    response.setPrice(menuItem.getPrice());
-    response.setImageUrl(menuItem.getImageUrl());
-    response.setCategory(menuItem.getCategory());
-    response.setPopular(menuItem.isPopular());
-    response.setAvailable(menuItem.isAvailable()); // Add this line
-    return response;
-}
+    private MenuItemResponse convertMenuItemToResponse(MenuItem menuItem) {
+        MenuItemResponse response = new MenuItemResponse();
+        response.setId(menuItem.getId());
+        response.setName(menuItem.getName());
+        response.setDescription(menuItem.getDescription());
+        response.setPrice(menuItem.getPrice());
+        response.setImageUrl(menuItem.getImageUrl());
+        response.setCategory(menuItem.getCategory());
+        response.setPopular(menuItem.isPopular());
+        response.setAvailable(menuItem.isAvailable());
+        return response;
+    }
 }
