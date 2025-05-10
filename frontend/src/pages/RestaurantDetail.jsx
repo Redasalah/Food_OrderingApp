@@ -7,12 +7,14 @@ import '../styles/RestaurantDetail.css';
 const RestaurantDetail = () => {
   const { id } = useParams();
   const [restaurant, setRestaurant] = useState(null);
+  const [menuCategories, setMenuCategories] = useState([]);
+  const [menuItemsByCategory, setMenuItemsByCategory] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeCategory, setActiveCategory] = useState(null);
   
   // Use the cart context
-  const { addItem } = useCart();
+  const { addItem, addToCart } = useCart();
 
   useEffect(() => {
     const fetchRestaurantDetails = async () => {
@@ -21,10 +23,29 @@ const RestaurantDetail = () => {
         const response = await restaurantApi.getRestaurantById(id);
         
         if (response.success) {
+          console.log('Restaurant data:', response.data);
           setRestaurant(response.data);
-          // Set the active category to the first one
-          if (response.data.menu && response.data.menu.length > 0) {
-            setActiveCategory(response.data.menu[0].id);
+          
+          // Process menu items by category
+          if (response.data.menuItems && response.data.menuItems.length > 0) {
+            // Group menu items by category
+            const itemsByCategory = {};
+            response.data.menuItems.forEach(item => {
+              if (!itemsByCategory[item.category]) {
+                itemsByCategory[item.category] = [];
+              }
+              itemsByCategory[item.category].push(item);
+            });
+            
+            // Set categories and items
+            const categories = Object.keys(itemsByCategory);
+            setMenuCategories(categories);
+            setMenuItemsByCategory(itemsByCategory);
+            
+            // Set initial active category
+            if (categories.length > 0) {
+              setActiveCategory(categories[0]);
+            }
           }
         } else {
           setError('Failed to load restaurant details. Please try again later.');
@@ -70,12 +91,13 @@ const RestaurantDetail = () => {
     return (
       <div className="error-container">
         <h2>Restaurant Not Found</h2>
-        <p>{error || 'Sorry, the restaurant  has been removed.'}</p>
+        <p>{error || 'Sorry, the restaurant has been removed.'}</p>
       </div>
     );
   }
 
-  const activeCategoryItems = restaurant.menu.find(category => category.id === activeCategory)?.items || [];
+  // Get items for the active category
+  const activeCategoryItems = menuItemsByCategory[activeCategory] || [];
 
   return (
     <div className="restaurant-detail-container">
@@ -99,13 +121,13 @@ const RestaurantDetail = () => {
         <div className="menu-sidebar">
           <h3>Menu</h3>
           <ul className="category-list">
-            {restaurant.menu.map(category => (
+            {menuCategories.map(category => (
               <li 
-                key={category.id}
-                className={activeCategory === category.id ? 'active' : ''}
-                onClick={() => setActiveCategory(category.id)}
+                key={category}
+                className={activeCategory === category ? 'active' : ''}
+                onClick={() => setActiveCategory(category)}
               >
-                {category.category}
+                {category}
               </li>
             ))}
           </ul>
@@ -113,7 +135,7 @@ const RestaurantDetail = () => {
 
         <div className="menu-content">
           <h2 className="category-title">
-            {restaurant.menu.find(category => category.id === activeCategory)?.category || 'Menu'}
+            {activeCategory || 'Menu'}
           </h2>
           
           <div className="menu-items">

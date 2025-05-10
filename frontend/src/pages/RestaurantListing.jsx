@@ -2,75 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import axios from 'axios';
 import '../styles/RestaurantListing.css';
-
-// This would be replaced with actual API calls
-const mockRestaurants = [
-  {
-    id: '1',
-    name: 'Pizza Paradise',
-    cuisine: 'Italian',
-    rating: 4.8,
-    deliveryTime: '25-35 min',
-    deliveryFee: 2.99,
-    imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-    priceRange: '$$'
-  },
-  {
-    id: '2',
-    name: 'Burger Bliss',
-    cuisine: 'American',
-    rating: 4.5,
-    deliveryTime: '15-25 min',
-    deliveryFee: 1.99,
-    imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-    priceRange: '$$'
-  },
-  {
-    id: '3',
-    name: 'Sushi Sensation',
-    cuisine: 'Japanese',
-    rating: 4.9,
-    deliveryTime: '35-45 min',
-    deliveryFee: 3.99,
-    imageUrl: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-    priceRange: '$$$'
-  },
-  {
-    id: '4',
-    name: 'Taco Time',
-    cuisine: 'Mexican',
-    rating: 4.6,
-    deliveryTime: '20-30 min',
-    deliveryFee: 2.49,
-    imageUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-    priceRange: '$'
-  },
-  {
-    id: '5',
-    name: 'Pho Delight',
-    cuisine: 'Vietnamese',
-    rating: 4.7,
-    deliveryTime: '25-40 min',
-    deliveryFee: 2.99,
-    imageUrl: 'https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-    priceRange: '$$'
-  },
-  {
-    id: '6',
-    name: 'Curry House',
-    cuisine: 'Indian',
-    rating: 4.8,
-    deliveryTime: '30-45 min',
-    deliveryFee: 3.49,
-    imageUrl: 'https://images.unsplash.com/photo-1505253758473-96b7015fcd40?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-    priceRange: '$$'
-  }
-];
 
 const RestaurantListing = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     cuisine: '',
     priceRange: '',
@@ -78,14 +16,21 @@ const RestaurantListing = () => {
   });
 
   useEffect(() => {
-    // In a real app, this would be an API call
+    // Fetch real restaurants from the API
     const fetchRestaurants = async () => {
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setRestaurants(mockRestaurants);
+        setLoading(true);
+        console.log('Fetching real restaurants from API...');
+        
+        const response = await axios.get('http://localhost:8080/api/public/restaurants');
+        console.log('API Response:', response.data);
+        
+        if (response.data) {
+          setRestaurants(response.data);
+        }
       } catch (error) {
         console.error('Error fetching restaurants:', error);
+        setError('Failed to load restaurants. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -102,6 +47,7 @@ const RestaurantListing = () => {
     });
   };
 
+  // Filter and sort restaurants based on user selections
   const filteredRestaurants = restaurants
     .filter(restaurant => {
       // Filter by cuisine
@@ -119,27 +65,41 @@ const RestaurantListing = () => {
     .sort((a, b) => {
       // Sort by selected criteria
       if (filters.sortBy === 'rating') {
-        return b.rating - a.rating;
+        return (b.rating || 0) - (a.rating || 0);
       } else if (filters.sortBy === 'deliveryTime') {
-        // Extract first number from delivery time range
-        const aTime = parseInt(a.deliveryTime.split('-')[0]);
-        const bTime = parseInt(b.deliveryTime.split('-')[0]);
-        return aTime - bTime;
+        // Extract first number from delivery time range (or use 30 as default)
+        const getMinutes = (timeString) => {
+          const match = timeString?.match(/\d+/);
+          return match ? parseInt(match[0]) : 30;
+        };
+        return getMinutes(a.deliveryTime) - getMinutes(b.deliveryTime);
       } else if (filters.sortBy === 'deliveryFee') {
-        return a.deliveryFee - b.deliveryFee;
+        return (a.deliveryFee || 0) - (b.deliveryFee || 0);
       }
       return 0;
     });
 
   // Get unique cuisines for filter
-  const cuisines = [...new Set(restaurants.map(r => r.cuisine))];
+  const cuisines = [...new Set(restaurants.map(r => r.cuisine).filter(Boolean))];
   
   // Get unique price ranges for filter
-  const priceRanges = [...new Set(restaurants.map(r => r.priceRange))];
+  const priceRanges = [...new Set(restaurants.map(r => r.priceRange).filter(Boolean))];
+
+  if (loading) {
+    return (
+      <>
+        <div className="restaurant-listing-container">
+          <div className="loading-state">
+            <p>Loading restaurants...</p>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
-      
       <div className="restaurant-listing-container">
         <div className="restaurant-listing-header">
           <h1>Restaurants Near You</h1>
@@ -192,52 +152,46 @@ const RestaurantListing = () => {
           </div>
         </div>
 
-        {loading ? (
-          <div className="loading-state">
-            <p>Loading restaurants...</p>
+        {filteredRestaurants.length > 0 ? (
+          <div className="restaurant-grid">
+            {filteredRestaurants.map(restaurant => (
+              <Link 
+                to={`/restaurants/${restaurant.id}`} 
+                className="restaurant-card" 
+                key={restaurant.id}
+              >
+                <div 
+                  className="restaurant-image" 
+                  style={{ backgroundImage: `url(${restaurant.imageUrl || 'https://via.placeholder.com/500x300'})` }}
+                />
+                <div className="restaurant-details">
+                  <h3>{restaurant.name}</h3>
+                  <p className="cuisine">{restaurant.cuisine}</p>
+                  <div className="restaurant-meta">
+                    <span className="rating">★ {restaurant.rating || '0.0'}</span>
+                    <span className="price-range">{restaurant.priceRange || '$'}</span>
+                  </div>
+                  <div className="delivery-info">
+                    <span className="delivery-time">{restaurant.deliveryTime || '30-45 min'}</span>
+                    <span className="delivery-fee">${(restaurant.deliveryFee || 2.99).toFixed(2)} delivery</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         ) : (
-          <div className="restaurant-grid">
-            {filteredRestaurants.length > 0 ? (
-              filteredRestaurants.map(restaurant => (
-                <Link 
-                  to={`/restaurants/${restaurant.id}`} 
-                  className="restaurant-card" 
-                  key={restaurant.id}
-                >
-                  <div 
-                    className="restaurant-image" 
-                    style={{ backgroundImage: `url(${restaurant.imageUrl})` }}
-                  />
-                  <div className="restaurant-details">
-                    <h3>{restaurant.name}</h3>
-                    <p className="cuisine">{restaurant.cuisine}</p>
-                    <div className="restaurant-meta">
-                      <span className="rating">★ {restaurant.rating}</span>
-                      <span className="price-range">{restaurant.priceRange}</span>
-                    </div>
-                    <div className="delivery-info">
-                      <span className="delivery-time">{restaurant.deliveryTime}</span>
-                      <span className="delivery-fee">${restaurant.deliveryFee.toFixed(2)} delivery</span>
-                    </div>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div className="no-results">
-                <p>No restaurants found matching your criteria.</p>
-                <button 
-                  className="reset-filters"
-                  onClick={() => setFilters({ cuisine: '', priceRange: '', sortBy: 'rating' })}
-                >
-                  Reset Filters
-                </button>
-              </div>
-            )}
+          <div className="no-results">
+            <p>No restaurants found matching your criteria.</p>
+            <button 
+              className="reset-filters"
+              onClick={() => setFilters({ cuisine: '', priceRange: '', sortBy: 'rating' })}
+            >
+              Reset Filters
+            </button>
           </div>
         )}
       </div>
-     
+      <Footer />
     </>
   );
 };

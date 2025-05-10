@@ -2,22 +2,36 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import Footer from '../components/Footer';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 import '../styles/Checkout.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
- 
-  // src/pages/Checkout.jsx
-const { items, subtotal, clearCart, updateQuantity, removeItem } = useCart();
+  const { user } = useAuth();
+  const { items, subtotal, clearCart } = useCart();
+  
+  const deliveryFee = 2.99;
+  const tax = subtotal * 0.08;
+  const total = subtotal + deliveryFee + tax;
+  
+  // Group items by restaurant
+  const itemsByRestaurant = items.reduce((acc, item) => {
+    const restaurantId = item.restaurantInfo?.id || 'unknown';
+    if (!acc[restaurantId]) {
+      acc[restaurantId] = {
+        restaurantInfo: item.restaurantInfo,
+        items: []
+      };
+    }
+    acc[restaurantId].items.push(item);
+    return acc;
+  }, {});
+  
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    phone: '',
-    paymentMethod: 'card',
+    deliveryAddress: '',
+    specialInstructions: '',
+    paymentMethod: 'CREDIT_CARD',
     cardNumber: '',
     cardExpiry: '',
     cardCvc: ''
@@ -25,12 +39,8 @@ const { items, subtotal, clearCart, updateQuantity, removeItem } = useCart();
   
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
   
-  // Calculate order totals using cart context data
-  const deliveryFee = 2.99;
-  const tax = subtotal * 0.08; // 8% tax rate
-  const total = subtotal + deliveryFee + tax;
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -50,32 +60,27 @@ const { items, subtotal, clearCart, updateQuantity, removeItem } = useCart();
   const validateForm = () => {
     const newErrors = {};
     
-    // Validate required fields
-    const requiredFields = ['firstName', 'lastName', 'address', 'city', 'postalCode', 'phone'];
-    requiredFields.forEach(field => {
-      if (!formData[field].trim()) {
-        newErrors[field] = 'This field is required';
-      }
-    });
+    if (!formData.deliveryAddress.trim()) {
+      newErrors.deliveryAddress = 'Delivery address is required';
+    }
     
-    // Validate card details if paying by card
-    if (formData.paymentMethod === 'card') {
+    if (formData.paymentMethod === 'CREDIT_CARD') {
       if (!formData.cardNumber.trim()) {
         newErrors.cardNumber = 'Card number is required';
-      } else if (!/^\d{16}$/.test(formData.cardNumber.replace(/\s/g, ''))) {
-        newErrors.cardNumber = 'Invalid card number';
+      } else if (formData.cardNumber.replace(/\s/g, '').length !== 16) {
+        newErrors.cardNumber = 'Card number must be 16 digits';
       }
       
       if (!formData.cardExpiry.trim()) {
         newErrors.cardExpiry = 'Expiry date is required';
       } else if (!/^\d{2}\/\d{2}$/.test(formData.cardExpiry)) {
-        newErrors.cardExpiry = 'Use format MM/YY';
+        newErrors.cardExpiry = 'Expiry date must be in MM/YY format';
       }
       
       if (!formData.cardCvc.trim()) {
         newErrors.cardCvc = 'CVC is required';
       } else if (!/^\d{3,4}$/.test(formData.cardCvc)) {
-        newErrors.cardCvc = 'Invalid CVC';
+        newErrors.cardCvc = 'CVC must be 3 or 4 digits';
       }
     }
     
@@ -90,21 +95,56 @@ const { items, subtotal, clearCart, updateQuantity, removeItem } = useCart();
       setIsSubmitting(true);
       
       try {
-        // In a real app, this would make an API call to process the order
-        console.log('Order data:', { orderItems: items, ...formData, total });
+        // Process each restaurant as a separate order
+        for (const restaurantId in itemsByRestaurant) {
+          if (restaurantId === 'unknown') continue;
+          
+          const restaurantItems = itemsByRestaurant[restaurantId].items;
+          
+          // Create order request object
+          const orderRequest = {
+            restaurantId: parseInt(restaurantId),
+            orderItems: restaurantItems.map(item => ({
+              menuItemId: item.id,
+              quantity: item.quantity,
+              specialInstructions: item.specialInstructions || ''
+            })),
+            deliveryAddress: formData.deliveryAddress,
+            specialInstructions: formData.specialInstructions,
+            paymentMethod: formData.paymentMethod
+          };
+          
+          console.log('Submitting order:', orderRequest);
+          
+          // Send order to API
+          const token = localStorage.getItem('token');
+          const response = await axios.post(
+            'http://localhost:8080/api/orders',
+            orderRequest,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+          
+          console.log('Order response:', response.data);
+        }
         
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Clear the cart after successful order
+        // All orders processed successfully
+        setOrderSuccess(true);
         clearCart();
         
-        // Navigate to order confirmation page
-        navigate('/order-confirmation');
+        // Redirect to order confirmation
+        setTimeout(() => {
+          navigate('/order-confirmation');
+        }, 1500);
+        
       } catch (error) {
-        console.error('Error processing order:', error);
+        console.error('Error placing order:', error);
         setErrors({
-          form: 'Failed to process your order. Please try again.'
+          submit: error.response?.data?.message || 'Failed to place order. Please try again.'
         });
       } finally {
         setIsSubmitting(false);
@@ -112,152 +152,103 @@ const { items, subtotal, clearCart, updateQuantity, removeItem } = useCart();
     }
   };
   
-  // Check if cart is empty
-  if (items.length === 0) {
+  if (items.length === 0 && !orderSuccess) {
     return (
-      <>
-        
-        <div className="checkout-container">
-          <div className="empty-cart-message">
-            <h2>Your cart is empty</h2>
-            <p>Add some delicious items to your cart before checking out.</p>
-            <button 
-              onClick={() => navigate('/restaurants')}
-              className="browse-restaurants-button"
-            >
-              Browse Restaurants
-            </button>
-          </div>
+      <div className="checkout-container">
+        <h1>Checkout</h1>
+        <div className="empty-cart-message">
+          <p>Your cart is empty. Please add items to your cart before checking out.</p>
+          <button onClick={() => navigate('/restaurants')} className="browse-button">
+            Browse Restaurants
+          </button>
         </div>
-        <Footer />
-      </>
+      </div>
+    );
+  }
+  
+  if (orderSuccess) {
+    return (
+      <div className="checkout-container">
+        <div className="order-success">
+          <h1>Order Placed Successfully!</h1>
+          <p>Redirecting to order confirmation...</p>
+        </div>
+      </div>
     );
   }
   
   return (
-    <>
-      <div className="checkout-container">
-        <h1>Checkout</h1>
-        
-        <div className="checkout-content">
-          <div className="checkout-form-container">
-            {errors.form && <div className="error-message">{errors.form}</div>}
-            
-            <form onSubmit={handleSubmit} className="checkout-form">
+    <div className="checkout-container">
+      <h1>Checkout</h1>
+      
+      <div className="checkout-content">
+        <div className="checkout-form-container">
+          {errors.submit && <div className="error-message form-error">{errors.submit}</div>}
+          
+          <form onSubmit={handleSubmit} className="checkout-form">
+            <div className="form-section">
               <h2>Delivery Information</h2>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="firstName">First Name</label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className={errors.firstName ? 'input-error' : ''}
-                  />
-                  {errors.firstName && <div className="error-message">{errors.firstName}</div>}
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="lastName">Last Name</label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className={errors.lastName ? 'input-error' : ''}
-                  />
-                  {errors.lastName && <div className="error-message">{errors.lastName}</div>}
-                </div>
+              
+              <div className="form-group">
+                <label htmlFor="deliveryAddress">Delivery Address*</label>
+                <input
+                  type="text"
+                  id="deliveryAddress"
+                  name="deliveryAddress"
+                  value={formData.deliveryAddress}
+                  onChange={handleChange}
+                  className={errors.deliveryAddress ? 'input-error' : ''}
+                  placeholder="Enter your full address"
+                />
+                {errors.deliveryAddress && <div className="error-message">{errors.deliveryAddress}</div>}
               </div>
               
               <div className="form-group">
-                <label htmlFor="address">Address</label>
-                <input
-                  type="text"
-                  id="address"
-                  name="address"
-                  value={formData.address}
+                <label htmlFor="specialInstructions">Special Instructions (Optional)</label>
+                <textarea
+                  id="specialInstructions"
+                  name="specialInstructions"
+                  value={formData.specialInstructions}
                   onChange={handleChange}
-                  className={errors.address ? 'input-error' : ''}
-                />
-                {errors.address && <div className="error-message">{errors.address}</div>}
+                  placeholder="Any special instructions for delivery"
+                  rows="3"
+                ></textarea>
               </div>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="city">City</label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    className={errors.city ? 'input-error' : ''}
-                  />
-                  {errors.city && <div className="error-message">{errors.city}</div>}
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="postalCode">Postal Code</label>
-                  <input
-                    type="text"
-                    id="postalCode"
-                    name="postalCode"
-                    value={formData.postalCode}
-                    onChange={handleChange}
-                    className={errors.postalCode ? 'input-error' : ''}
-                  />
-                  {errors.postalCode && <div className="error-message">{errors.postalCode}</div>}
-                </div>
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="phone">Phone Number</label>
-                <input
-                  type="text"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className={errors.phone ? 'input-error' : ''}
-                />
-                {errors.phone && <div className="error-message">{errors.phone}</div>}
-              </div>
-              
+            </div>
+            
+            <div className="form-section">
               <h2>Payment Method</h2>
+              
               <div className="payment-options">
                 <div className="payment-option">
                   <input
                     type="radio"
-                    id="card"
+                    id="creditCard"
                     name="paymentMethod"
-                    value="card"
-                    checked={formData.paymentMethod === 'card'}
+                    value="CREDIT_CARD"
+                    checked={formData.paymentMethod === 'CREDIT_CARD'}
                     onChange={handleChange}
                   />
-                  <label htmlFor="card">Credit/Debit Card</label>
+                  <label htmlFor="creditCard">Credit/Debit Card</label>
                 </div>
                 
                 <div className="payment-option">
                   <input
                     type="radio"
-                    id="cash"
+                    id="cashOnDelivery"
                     name="paymentMethod"
-                    value="cash"
-                    checked={formData.paymentMethod === 'cash'}
+                    value="CASH_ON_DELIVERY"
+                    checked={formData.paymentMethod === 'CASH_ON_DELIVERY'}
                     onChange={handleChange}
                   />
-                  <label htmlFor="cash">Cash on Delivery</label>
+                  <label htmlFor="cashOnDelivery">Cash on Delivery</label>
                 </div>
               </div>
               
-              {formData.paymentMethod === 'card' && (
+              {formData.paymentMethod === 'CREDIT_CARD' && (
                 <div className="card-details">
                   <div className="form-group">
-                    <label htmlFor="cardNumber">Card Number</label>
+                    <label htmlFor="cardNumber">Card Number*</label>
                     <input
                       type="text"
                       id="cardNumber"
@@ -272,7 +263,7 @@ const { items, subtotal, clearCart, updateQuantity, removeItem } = useCart();
                   
                   <div className="form-row">
                     <div className="form-group">
-                      <label htmlFor="cardExpiry">Expiry Date</label>
+                      <label htmlFor="cardExpiry">Expiry Date*</label>
                       <input
                         type="text"
                         id="cardExpiry"
@@ -286,7 +277,7 @@ const { items, subtotal, clearCart, updateQuantity, removeItem } = useCart();
                     </div>
                     
                     <div className="form-group">
-                      <label htmlFor="cardCvc">CVC</label>
+                      <label htmlFor="cardCvc">CVC*</label>
                       <input
                         type="text"
                         id="cardCvc"
@@ -301,77 +292,63 @@ const { items, subtotal, clearCart, updateQuantity, removeItem } = useCart();
                   </div>
                 </div>
               )}
-              
-              <button 
-                type="submit" 
-                className="place-order-button" 
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Processing...' : 'Place Order'}
-              </button>
-            </form>
-          </div>
-          
-          <div className="order-summary">
-            <h2>Order Summary</h2>
-            <div className="order-items">
-  {items.map(item => (
-    <div key={item.id} className="order-item">
-      <div className="item-left">
-        <div className="item-controls">
-          <button 
-            className="quantity-button"
-            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-            disabled={item.quantity <= 1}
-          >
-            -
-          </button>
-          <span className="order-item-quantity">{item.quantity}</span>
-          <button 
-            className="quantity-button"
-            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-          >
-            +
-          </button>
-        </div>
-        <div className="order-item-name">{item.name}</div>
-      </div>
-      <div className="item-right">
-        <div className="order-item-price">${(item.price * item.quantity).toFixed(2)}</div>
-        <button 
-          className="remove-button"
-          onClick={() => removeItem(item.id)}
-        >
-          ✕
-        </button>
-      </div>
-    </div>
-  ))}
-</div>
+            </div>
             
-            <div className="order-totals">
-              <div className="order-total-row">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+            <button 
+              type="submit" 
+              className="place-order-button" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Processing...' : 'Place Order'}
+            </button>
+          </form>
+        </div>
+        
+        <div className="order-summary">
+          <h2>Order Summary</h2>
+          
+          {Object.entries(itemsByRestaurant).map(([restaurantId, { restaurantInfo, items }]) => (
+            <div key={restaurantId} className="restaurant-order">
+              <h3>{restaurantInfo?.name || 'Unknown Restaurant'}</h3>
+              
+              <div className="order-items">
+                {items.map(item => (
+                  <div key={item.id} className="order-item">
+                    <div className="item-quantity">{item.quantity}x</div>
+                    <div className="item-details">
+                      <div className="item-name">{item.name}</div>
+                      {item.specialInstructions && (
+                        <div className="item-instructions">{item.specialInstructions}</div>
+                      )}
+                    </div>
+                    <div className="item-price">${(item.price * item.quantity).toFixed(2)}</div>
+                  </div>
+                ))}
               </div>
-              <div className="order-total-row">
-                <span>Delivery Fee</span>
-                <span>${deliveryFee.toFixed(2)}</span>
-              </div>
-              <div className="order-total-row">
-                <span>Tax</span>
-                <span>${tax.toFixed(2)}</span>
-              </div>
-              <div className="order-total-row total">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
+            </div>
+          ))}
+          
+          <div className="order-totals">
+            <div className="order-total-row">
+              <span>Subtotal</span>
+              <span>${subtotal.toFixed(2)}</span>
+            </div>
+            <div className="order-total-row">
+              <span>Delivery Fee</span>
+              <span>${deliveryFee.toFixed(2)}</span>
+            </div>
+            <div className="order-total-row">
+              <span>Tax</span>
+              <span>${tax.toFixed(2)}</span>
+            </div>
+            <div className="order-total-row total">
+              <span>Total</span>
+              <span>${total.toFixed(2)}</span>
             </div>
           </div>
         </div>
       </div>
-      <Footer />
-    </>
+    </div>
   );
 };
 

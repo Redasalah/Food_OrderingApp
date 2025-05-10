@@ -34,6 +34,7 @@ const Cart = () => {
           <div key={item.id} className="cart-item">
             <div className="cart-item-details">
               <h4>{item.name}</h4>
+              <p className="cart-item-restaurant">From: {item.restaurantInfo?.name || 'Unknown restaurant'}</p>
               <p className="cart-item-price">${item.price.toFixed(2)}</p>
             </div>
             <div className="cart-item-actions">
@@ -89,8 +90,7 @@ const Cart = () => {
       
       <button 
         onClick={clearCart}
-        className="browse-restaurants-button"
-        style={{ backgroundColor: '#ccc', marginTop: '1rem' }}
+        className="clear-cart-button"
       >
         Clear Cart
       </button>
