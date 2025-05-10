@@ -6,7 +6,11 @@ const CartContext = createContext();
 
 // Custom hook to use the Cart Context
 export function useCart() {
-  return useContext(CartContext);
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
 }
 
 // Cart Provider Component
@@ -46,7 +50,10 @@ export function CartProvider({ children }) {
   const addItem = (item) => {
     setItems(prevItems => {
       // Check if item already exists in cart
-      const existingItemIndex = prevItems.findIndex(cartItem => cartItem.id === item.id);
+      const existingItemIndex = prevItems.findIndex(
+        cartItem => cartItem.id === item.id && 
+        cartItem.restaurantInfo?.id === item.restaurantInfo?.id
+      );
       
       if (existingItemIndex >= 0) {
         // Item exists, update quantity
@@ -103,18 +110,17 @@ export function CartProvider({ children }) {
   
   // Create the context value
   const value = {
-    cart,
-    items: cart,               // Add items alias for components expecting it
+    items,
     totalItems,
-    totalPrice,
-    subtotal: totalPrice,      // Add subtotal alias for components expecting it
-    addToCart,
-    addItem: addToCart,        // Add addItem alias for components using this name
-    removeFromCart,
-    removeItem: removeFromCart, // Add removeItem alias for consistency
+    subtotal,
+    addItem,
+    removeItem,
     updateQuantity,
-    clearCart
+    clearCart,
+    hasMultipleRestaurants,
+    getSingleRestaurantId
   };
+  
   return (
     <CartContext.Provider value={value}>
       {children}

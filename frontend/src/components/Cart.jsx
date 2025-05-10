@@ -11,12 +11,25 @@ const Cart = () => {
   const tax = subtotal * 0.08; // 8% tax rate
   const total = subtotal + deliveryFee + tax;
   
+  // Group items by restaurant
+  const itemsByRestaurant = items.reduce((acc, item) => {
+    const restaurantName = item.restaurantInfo?.name || 'Unknown Restaurant';
+    if (!acc[restaurantName]) {
+      acc[restaurantName] = [];
+    }
+    acc[restaurantName].push(item);
+    return acc;
+  }, {});
+  
   if (items.length === 0) {
     return (
       <div className="cart-container">
         <div className="cart-empty">
-          <h3>Your cart is empty</h3>
-          <p>Add some delicious items to your cart from our restaurants.</p>
+          <div className="empty-cart-icon">
+            <i className="fas fa-shopping-cart"></i>
+          </div>
+          <h2>Your cart is empty</h2>
+          <p>Looks like you haven't added any items to your cart yet.</p>
           <Link to="/restaurants" className="browse-restaurants-button">
             Browse Restaurants
           </Link>
@@ -27,73 +40,91 @@ const Cart = () => {
   
   return (
     <div className="cart-container">
-      <h2>Your Cart</h2>
+      <div className="cart-header">
+        <h1>Your Cart</h1>
+        <button 
+          onClick={clearCart}
+          className="clear-cart-button"
+        >
+          Clear Cart
+        </button>
+      </div>
       
-      <div className="cart-items">
-        {items.map(item => (
-          <div key={item.id} className="cart-item">
-            <div className="cart-item-details">
-              <h4>{item.name}</h4>
-              <p className="cart-item-restaurant">From: {item.restaurantInfo?.name || 'Unknown restaurant'}</p>
-              <p className="cart-item-price">${item.price.toFixed(2)}</p>
-            </div>
-            <div className="cart-item-actions">
-              <div className="quantity-controls">
+      {Object.entries(itemsByRestaurant).map(([restaurantName, restaurantItems]) => (
+        <div key={restaurantName} className="restaurant-cart-section">
+          <h2 className="restaurant-name">
+            <i className="fas fa-utensils"></i> {restaurantName}
+          </h2>
+          
+          {restaurantItems.map(item => (
+            <div key={item.id} className="cart-item">
+              <div className="cart-item-details">
+                <div className="cart-item-image-container">
+                  <img 
+                    src={item.imageUrl || 'https://via.placeholder.com/100'} 
+                    alt={item.name} 
+                    className="cart-item-image"
+                  />
+                </div>
+                <div className="cart-item-info">
+                  <h3>{item.name}</h3>
+                  <p className="cart-item-price">${item.price.toFixed(2)}</p>
+                </div>
+              </div>
+              
+              <div className="cart-item-actions">
+                <div className="quantity-controls">
+                  <button 
+                    className="quantity-button"
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    disabled={item.quantity <= 1}
+                  >
+                    -
+                  </button>
+                  <span className="quantity">{item.quantity}</span>
+                  <button 
+                    className="quantity-button"
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  >
+                    +
+                  </button>
+                </div>
                 <button 
-                  className="quantity-button"
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  disabled={item.quantity <= 1}
+                  className="remove-item-button"
+                  onClick={() => removeItem(item.id)}
                 >
-                  -
-                </button>
-                <span className="quantity">{item.quantity}</span>
-                <button 
-                  className="quantity-button"
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                >
-                  +
+                  Remove
                 </button>
               </div>
-              <button 
-                className="remove-button"
-                onClick={() => removeItem(item.id)}
-              >
-                Remove
-              </button>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ))}
       
       <div className="cart-summary">
-        <div className="cart-summary-row">
-          <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
+        <div className="cart-summary-section">
+          <div className="cart-summary-row">
+            <span>Subtotal</span>
+            <span>${subtotal.toFixed(2)}</span>
+          </div>
+          <div className="cart-summary-row">
+            <span>Delivery Fee</span>
+            <span>${deliveryFee.toFixed(2)}</span>
+          </div>
+          <div className="cart-summary-row">
+            <span>Tax (8%)</span>
+            <span>${tax.toFixed(2)}</span>
+          </div>
+          <div className="cart-summary-row total">
+            <span>Total</span>
+            <span>${total.toFixed(2)}</span>
+          </div>
         </div>
-        <div className="cart-summary-row">
-          <span>Delivery Fee</span>
-          <span>${deliveryFee.toFixed(2)}</span>
-        </div>
-        <div className="cart-summary-row">
-          <span>Tax</span>
-          <span>${tax.toFixed(2)}</span>
-        </div>
-        <div className="cart-summary-row total">
-          <span>Total</span>
-          <span>${total.toFixed(2)}</span>
-        </div>
+        
+        <Link to="/checkout" className="checkout-button">
+          Proceed to Checkout
+        </Link>
       </div>
-      
-      <Link to="/checkout" className="checkout-button">
-        Proceed to Checkout
-      </Link>
-      
-      <button 
-        onClick={clearCart}
-        className="clear-cart-button"
-      >
-        Clear Cart
-      </button>
     </div>
   );
 };

@@ -74,7 +74,7 @@ const RestaurantDetail = () => {
       ...item,
       restaurantInfo
     });
-
+  
     // Optional: Show a confirmation message
     alert(`${item.name} added to cart!`);
   };
