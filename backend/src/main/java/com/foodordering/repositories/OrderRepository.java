@@ -17,7 +17,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     // Find orders for a specific user with a specific status, ordered by most recent first
     List<Order> findByUserAndStatusOrderByCreatedAtDesc(User user, OrderStatus status);
-    
+    List<Order> findByRestaurantIdOrderByCreatedAtDesc(Long restaurantId);
+List<Order> findByRestaurantIdAndStatusOrderByCreatedAtDesc(Long restaurantId, OrderStatus status);
     // Find a specific order for a user
     Optional<Order> findByIdAndUser(Long orderId, User user);
 }

@@ -53,33 +53,38 @@ public class OrderService {
             throw new ResourceNotFoundException("Invalid payment method");
         }
         
-        // Prepare order items
-        BigDecimal subtotal = BigDecimal.ZERO;
+        // Prepare order items (without calculating subtotal inside the stream)
         List<OrderItem> orderItems = orderRequest.getOrderItems().stream()
-                .map(itemRequest -> {
-                    // Find menu item
-                    MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
-                            .orElseThrow(() -> new ResourceNotFoundException("Menu item not found"));
-                    
-                    // Create order item
-                    OrderItem orderItem = new OrderItem();
-                    orderItem.setMenuItem(menuItem);
-                    orderItem.setQuantity(itemRequest.getQuantity());
-                    
-                    // Calculate item price
-                    BigDecimal itemPrice = menuItem.getPrice()
-                            .multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
-                    orderItem.setPrice(itemPrice);
-                    
-                    orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
-                    orderItem.setOrder(order);
-                    
-                    // Add to subtotal
-                    subtotal.add(itemPrice);
-                    
-                    return orderItem;
-                })
-                .collect(Collectors.toList());
+        .map(itemRequest -> {
+            // Find menu item
+            MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Menu item not found"));
+            
+            // Create order item
+            OrderItem orderItem = new OrderItem();
+            orderItem.setMenuItem(menuItem);
+            orderItem.setQuantity(itemRequest.getQuantity());
+            
+            // Set the name field from the menu item name
+            orderItem.setName(menuItem.getName());
+            
+            // Calculate item price
+            BigDecimal itemPrice = menuItem.getPrice()
+                    .multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
+            orderItem.setPrice(itemPrice);
+            
+            orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
+            orderItem.setOrder(order);
+            
+            return orderItem;
+        })
+        .collect(Collectors.toList());
+
+        // Calculate subtotal after collecting all items
+        BigDecimal subtotal = BigDecimal.ZERO;
+        for (OrderItem item : orderItems) {
+            subtotal = subtotal.add(item.getPrice());
+        }
         
         // Set order items
         order.setOrderItems(orderItems);

@@ -26,6 +26,9 @@ public class OrderItem {
     @Column(nullable = false)
     private BigDecimal price;
     
+    @Column(nullable = false)  // Add this field to match the database constraint
+    private String name;
+    
     @Column
     private String specialInstructions;
     
@@ -71,6 +74,15 @@ public class OrderItem {
     
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+    
+    // Add getter and setter for the name field
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
     }
     
     public String getSpecialInstructions() {
