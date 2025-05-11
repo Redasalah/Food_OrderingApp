@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import orderApi from '../api/orderApi';
 import '../styles/Checkout.css';
 
 const Checkout = () => {
@@ -96,41 +96,34 @@ const Checkout = () => {
       
       try {
         // Process each restaurant as a separate order
-        for (const restaurantId in itemsByRestaurant) {
-          if (restaurantId === 'unknown') continue;
-          
-          const restaurantItems = itemsByRestaurant[restaurantId].items;
-          
-          // Create order request object
-          const orderRequest = {
-            restaurantId: parseInt(restaurantId),
-            orderItems: restaurantItems.map(item => ({
-              menuItemId: item.id,
-              quantity: item.quantity,
-              specialInstructions: item.specialInstructions || ''
-            })),
-            deliveryAddress: formData.deliveryAddress,
-            specialInstructions: formData.specialInstructions,
-            paymentMethod: formData.paymentMethod
-          };
-          
-          console.log('Submitting order:', orderRequest);
-          
-          // Send order to API
-          const token = localStorage.getItem('token');
-          const response = await axios.post(
-            'http://localhost:8080/api/orders',
-            orderRequest,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
+        const orderPromises = Object.entries(itemsByRestaurant)
+          .filter(([restaurantId]) => restaurantId !== 'unknown')
+          .map(async ([restaurantId, { items }]) => {
+            // Create order request object
+            const orderRequest = {
+              restaurantId: parseInt(restaurantId),
+              orderItems: items.map(item => ({
+                menuItemId: item.id,
+                quantity: item.quantity,
+                specialInstructions: item.specialInstructions || ''
+              })),
+              deliveryAddress: formData.deliveryAddress,
+              specialInstructions: formData.specialInstructions,
+              paymentMethod: formData.paymentMethod
+            };
+            
+            // Send order to API
+            const response = await orderApi.createOrder(orderRequest);
+            
+            if (!response.success) {
+              throw new Error(response.error);
             }
-          );
-          
-          console.log('Order response:', response.data);
-        }
+            
+            return response.data;
+          });
+        
+        // Wait for all orders to be processed
+        const processedOrders = await Promise.all(orderPromises);
         
         // All orders processed successfully
         setOrderSuccess(true);
@@ -138,13 +131,15 @@ const Checkout = () => {
         
         // Redirect to order confirmation
         setTimeout(() => {
-          navigate('/order-confirmation');
+          navigate('/order-confirmation', { 
+            state: { orders: processedOrders } 
+          });
         }, 1500);
         
       } catch (error) {
         console.error('Error placing order:', error);
         setErrors({
-          submit: error.response?.data?.message || 'Failed to place order. Please try again.'
+          submit: error.message || 'Failed to place order. Please try again.'
         });
       } finally {
         setIsSubmitting(false);
@@ -220,7 +215,9 @@ const Checkout = () => {
               <h2>Payment Method</h2>
               
               <div className="payment-options">
-                <div className="payment-option">
+                <div 
+                  className={`payment-option ${formData.paymentMethod === 'CREDIT_CARD' ? 'selected' : ''}`}
+                >
                   <input
                     type="radio"
                     id="creditCard"
@@ -232,7 +229,9 @@ const Checkout = () => {
                   <label htmlFor="creditCard">Credit/Debit Card</label>
                 </div>
                 
-                <div className="payment-option">
+                <div 
+                  className={`payment-option ${formData.paymentMethod === 'CASH_ON_DELIVERY' ? 'selected' : ''}`}
+                >
                   <input
                     type="radio"
                     id="cashOnDelivery"
