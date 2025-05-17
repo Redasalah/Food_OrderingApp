@@ -1,0 +1,267 @@
+/* src/styles/OrderTracking.css */
+.order-tracking-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .order-tracking-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  
+  .order-tracking-header h1 {
+    font-size: 2.5rem;
+    color: #ff4500;
+    margin-bottom: 0.5rem;
+  }
+  
+  .order-tracking-header p {
+    font-size: 1.2rem;
+    color: #555;
+  }
+  
+  .order-details-card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+  }
+  
+  .order-status-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .order-status-icon {
+    font-size: 3rem;
+    margin-right: 1.5rem;
+  }
+  
+  .order-status-info h2 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    font-size: 1.8rem;
+  }
+  
+  .order-status-info p {
+    margin: 0;
+    color: #666;
+  }
+  
+  .order-progress-tracker {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+  
+  .progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+    transition: all 0.3s ease;
+  }
+  
+  .progress-step.completed {
+    opacity: 1;
+  }
+  
+  .step-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f4f4f4;
+    border-radius: 50%;
+  }
+  
+  .progress-step.completed .step-icon {
+    background-color: #ff4500;
+    color: white;
+  }
+  
+  .step-label {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+  .order-summary-section,
+  .order-items-section,
+  .special-instructions {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .order-summary-section h3,
+  .order-items-section h3,
+  .special-instructions h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 1.3rem;
+  }
+  
+  .order-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  .order-info-item {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .info-label {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .info-value {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .order-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f4f4f4;
+  }
+  
+  .order-item:last-child {
+    border-bottom: none;
+  }
+  
+  .item-details {
+    display: flex;
+    align-items: center;
+  }
+  
+  .item-quantity {
+    font-weight: 600;
+    color: #666;
+    margin-right: 1rem;
+  }
+  
+  .item-name {
+    color: #333;
+  }
+  
+  .item-price {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .special-instructions p {
+    color: #666;
+    background-color: #f9f9f9;
+    padding: 1rem;
+    border-radius: 4px;
+  }
+  
+  .order-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+  }
+  
+  .cancel-order-btn,
+  .back-to-orders-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .cancel-order-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .cancel-order-btn:hover {
+    background-color: #c82333;
+  }
+  
+  .back-to-orders-btn {
+    background-color: #f4f4f4;
+    color: #333;
+    border: 1px solid #ddd;
+  }
+  
+  .back-to-orders-btn:hover {
+    background-color: #e9ecef;
+  }
+  
+  .loading-spinner,
+  .error-message,
+  .no-order-message {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+  }
+  
+  .error-message,
+  .no-order-message {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+  }
+  
+  @media (max-width: 768px) {
+    .order-tracking-container {
+      padding: 1rem;
+    }
+  
+    .order-details-card {
+      padding: 1.5rem;
+    }
+  
+    .order-progress-tracker {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .progress-step {
+      flex-direction: row;
+      width: 100%;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+  
+    .step-icon {
+      width: 40px;
+      height: 40px;
+      margin-right: 1rem;
+      margin-bottom: 0;
+    }
+  
+    .order-info-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .order-actions {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  
+    .cancel-order-btn,
+    .back-to-orders-btn {
+      width: 100%;
+    }
+  }

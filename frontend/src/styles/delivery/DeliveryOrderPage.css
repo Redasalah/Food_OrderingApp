@@ -1,0 +1,409 @@
+/* src/styles/delivery/OrderDelivery.css */
+.order-delivery-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .order-delivery-header {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  
+  .order-delivery-header h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .order-delivery-header p {
+    color: #666;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  
+  .order-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+  
+  .order-progress::before {
+    content: '';
+    position: absolute;
+    top: 24px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: #eee;
+    z-index: 1;
+  }
+  
+  .progress-step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+    flex: 1;
+  }
+  
+  .step-number {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #666;
+    margin-bottom: 0.75rem;
+    border: 3px solid white;
+  }
+  
+  .step-title {
+    font-size: 0.9rem;
+    text-align: center;
+    color: #666;
+    font-weight: 600;
+  }
+  
+  .progress-step.active .step-number {
+    background-color: #31511E;
+    color: white;
+  }
+  
+  .progress-step.active .step-title {
+    color: #31511E;
+  }
+  
+  .delivery-info-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .delivery-info-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+  
+  .delivery-info-card h3 {
+    margin: 0;
+    padding: 1.25rem;
+    background-color: #f6f6f6;
+    color: #333;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .info-content {
+    padding: 1.25rem;
+  }
+  
+  .info-content p {
+    margin: 0 0 0.75rem 0;
+    color: #666;
+  }
+  
+  .info-content p:last-child {
+    margin-bottom: 0;
+  }
+  
+  .info-content p strong {
+    color: #333;
+    font-weight: 600;
+  }
+  
+  .order-details-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  
+  .order-details-section h3 {
+    margin: 0;
+    padding: 1.25rem;
+    background-color: #f6f6f6;
+    color: #333;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .order-items-list {
+    padding: 1.25rem;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed #eee;
+  }
+  
+  .order-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  
+  .item-info {
+    display: flex;
+    align-items: center;
+  }
+  
+  .item-quantity {
+    font-weight: 600;
+    color: #31511E;
+    margin-right: 0.75rem;
+  }
+  
+  .item-name {
+    color: #333;
+  }
+  
+  .item-price {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .order-summary {
+    padding: 1.25rem;
+  }
+  
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    color: #666;
+  }
+  
+  .summary-row.total {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #eee;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #333;
+  }
+  
+  .delivery-actions {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .action-button {
+    flex: 1;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+  
+  .action-button.primary {
+    background-color: #31511E;
+    color: white;
+  }
+  
+  .action-button.primary:hover {
+    background-color: #5f9242;
+  }
+  
+  .action-button.secondary {
+    background-color: white;
+    color: #e53e3e;
+    border: 2px solid #e53e3e;
+  }
+  
+  .action-button.secondary:hover {
+    background-color: #fff5f5;
+  }
+  
+  .action-button.complete {
+    background-color: #0d8a30;
+    color: white;
+  }
+  
+  .action-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background-color: white;
+    border-radius: 8px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .modal-content h3 {
+    margin-top: 0;
+    color: #333;
+  }
+  
+  .issue-select {
+    width: 100%;
+    padding: 0.75rem;
+    margin: 1rem 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .modal-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .modal-button.primary {
+    background-color: #e53e3e;
+    color: white;
+    border: none;
+  }
+  
+  .modal-button.primary:hover:not(:disabled) {
+    background-color: #c53030;
+  }
+  
+  .modal-button.primary:disabled {
+    background-color: #feb2b2;
+    cursor: not-allowed;
+  }
+  
+  .modal-button.secondary {
+    background-color: white;
+    color: #666;
+    border: 1px solid #ddd;
+  }
+  
+  .modal-button.secondary:hover {
+    background-color: #f7fafc;
+  }
+  
+  .delivery-issue-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+  }
+  
+  .delivery-issue-message {
+    background-color: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 600px;
+  }
+  
+  .delivery-issue-message h2 {
+    color: #e53e3e;
+    margin-top: 0;
+  }
+  
+  .order-not-found {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+  
+  .order-not-found h2 {
+    color: #e53e3e;
+  }
+  
+  .return-button {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #31511E;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .return-button:hover {
+    background-color: #5f9242;
+  }
+  
+  .delivery-loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60vh;
+    font-size: 1.2rem;
+    color: #666;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 992px) {
+    .delivery-info-container {
+      grid-template-columns: 1fr;
+    }
+    
+    .order-progress {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.5rem;
+    }
+    
+    .order-progress::before {
+      display: none;
+    }
+    
+    .progress-step {
+      flex-direction: row;
+      width: 100%;
+      gap: 1rem;
+    }
+    
+    .step-title {
+      text-align: left;
+    }
+    
+    .delivery-actions {
+      flex-direction: column;
+    }
+  }

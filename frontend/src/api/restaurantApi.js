@@ -42,6 +42,47 @@ const restaurantApi = {
     }
   },
 
+
+
+
+// Add this method to restaurantApi
+getRestaurantOrders: async (restaurantId, status = null) => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      params: {
+        restaurantId: restaurantId,
+        ...(status ? { status } : {})
+      }
+    };
+    
+    const response = await axios.get(`${API_URL}/restaurants/${restaurantId}/orders`, config);
+    
+    console.log('Restaurant Orders Response:', response.data);
+    
+    return { 
+      success: true, 
+      data: response.data 
+    };
+  } catch (error) {
+    console.error('Error fetching restaurant orders:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+
+    return { 
+      success: false, 
+      error: error.response?.data?.message || 'Failed to fetch restaurant orders' 
+    };
+  }
+},
+
+ 
   // Get restaurants owned by the logged-in user (protected endpoint)
   getMyRestaurants: async () => {
     try {

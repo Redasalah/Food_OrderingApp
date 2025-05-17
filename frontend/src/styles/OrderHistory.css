@@ -1,0 +1,263 @@
+/* src/styles/OrderHistory.css */
+.order-history-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .order-history-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  
+  .order-history-header h1 {
+    font-size: 2.5rem;
+    color: #ff4500;
+    margin-bottom: 0.5rem;
+  }
+  
+  .order-history-header p {
+    font-size: 1.2rem;
+    color: #555;
+  }
+  
+  .order-filters {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  
+  .filter-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    color: #666;
+    border-radius: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .filter-btn.active {
+    background-color: #ff4500;
+    color: white;
+    border-color: #ff4500;
+  }
+  
+  .filter-btn:hover {
+    background-color: #f4f4f4;
+  }
+  
+  .no-orders-message {
+    text-align: center;
+    background-color: #f9f9f9;
+    padding: 3rem;
+    border-radius: 8px;
+  }
+  
+  .browse-restaurants-btn {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #ff4500;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .browse-restaurants-btn:hover {
+    background-color: #e63e00;
+  }
+  
+  .orders-list {
+    display: grid;
+    gap: 1.5rem;
+  }
+  
+  .order-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .order-card:hover {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  }
+  
+  .order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .order-restaurant {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .restaurant-name {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .order-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .order-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .order-id {
+    font-weight: 600;
+  }
+  
+  .order-date {
+    color: #888;
+  }
+  
+  .order-items {
+    padding: 1rem;
+    border-bottom: 1px solid #f4f4f4;
+  }
+  
+  .order-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .order-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  
+  .item-details {
+    display: flex;
+    align-items: center;
+  }
+  
+  .item-quantity {
+    font-weight: 600;
+    color: #666;
+    margin-right: 1rem;
+  }
+  
+  .item-name {
+    color: #333;
+  }
+  
+  .item-price {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .order-summary {
+    padding: 1rem;
+    background-color: #f9f9f9;
+  }
+  
+  .order-total {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+  }
+  
+  .order-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    background-color: white;
+    border-top: 1px solid #eee;
+  }
+  
+  .track-order-btn,
+  .cancel-order-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .track-order-btn {
+    background-color: #ff4500;
+    color: white;
+    border: none;
+  }
+  
+  .track-order-btn:hover {
+    background-color: #e63e00;
+  }
+  
+  .cancel-order-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+  }
+  
+  .cancel-order-btn:hover {
+    background-color: #c82333;
+  }
+  
+  .loading-spinner,
+  .error-message {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+  }
+  
+  @media (max-width: 768px) {
+    .order-history-container {
+      padding: 1rem;
+    }
+  
+    .order-card-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+  
+    .order-restaurant {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  
+    .order-meta {
+      align-items: flex-start;
+      width: 100%;
+    }
+  
+    .order-actions {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  
+    .track-order-btn,
+    .cancel-order-btn {
+      width: 100%;
+    }
+  }

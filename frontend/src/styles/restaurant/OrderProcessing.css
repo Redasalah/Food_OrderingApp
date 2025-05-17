@@ -1,252 +1,241 @@
 /* src/styles/restaurant/OrderProcessing.css */
 .order-processing-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.order-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.order-header h1 {
+  font-size: 2.5rem;
+  color: #ff8c00;
+  margin-bottom: 0.5rem;
+}
+
+.order-header p {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.restaurant-selector {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.restaurant-selector-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.restaurant-selector label {
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.restaurant-selector select {
+  flex-grow: 1;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.restaurant-selector select:focus {
+  outline: none;
+  border-color: #ff8c00;
+}
+
+.orders-section {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.order-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  background-color: #f9f9f9;
+}
+
+.order-tab {
+  flex: 1;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.order-tab:hover {
+  background-color: #f1f1f1;
+}
+
+.order-tab.active {
+  color: #ff8c00;
+  border-bottom-color: #ff8c00;
+  font-weight: 600;
+}
+
+.orders-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.order-card {
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.order-card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #eee;
+}
+
+.order-id {
+  font-weight: 600;
+  color: #333;
+}
+
+.order-time {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.order-details {
+  padding: 1.5rem;
+}
+
+.order-items {
+  margin-bottom: 1rem;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-item-name {
+  flex-grow: 1;
+  margin-right: 1rem;
+}
+
+.order-item-quantity {
+  font-weight: 600;
+  color: #666;
+  margin-right: 1rem;
+}
+
+.order-item-price {
+  font-weight: 600;
+  color: #333;
+}
+
+.order-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-top: 1px solid #eee;
+}
+
+.order-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-top: 1px solid #eee;
+}
+
+.order-action-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.order-action-btn-accept {
+  background-color: #28a745;
+  color: white;
+}
+
+.order-action-btn-accept:hover {
+  background-color: #218838;
+}
+
+.order-action-btn-reject {
+  background-color: #dc3545;
+  color: white;
+}
+
+.order-action-btn-reject:hover {
+  background-color: #c82333;
+}
+
+.no-orders {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .order-processing-container {
+    padding: 1rem;
   }
-  
-  .order-header {
-    text-align: center;
-    margin-bottom: 2rem;
+
+  .restaurant-selector-content {
+    flex-direction: column;
+    align-items: stretch;
   }
-  
-  .order-header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    color: #ff8c00;
-  }
-  
-  .order-header p {
-    font-size: 1.2rem;
-    color: #555;
-  }
-  
-  .restaurant-selector {
-    margin-bottom: 2rem;
-    background-color: #fff;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .restaurant-selector label {
-    font-weight: 600;
-    margin-right: 1rem;
-  }
-  
-  .restaurant-selector select {
-    padding: 0.5rem 1rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    min-width: 200px;
-  }
-  
-  .orders-content {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-  }
-  
+
   .order-tabs {
-    display: flex;
-    border-bottom: 1px solid #eee;
-    overflow-x: auto;
+    flex-direction: column;
   }
-  
-  .tab-button {
-    padding: 1rem 1.5rem;
-    background-color: transparent;
-    border: none;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-  
-  .tab-button:hover {
-    background-color: #f8f9fa;
-  }
-  
-  .tab-button.active {
-    color: #ff8c00;
-    border-bottom: 2px solid #ff8c00;
-    font-weight: 600;
-  }
-  
-  .order-list-container {
-    padding: 2rem;
-    min-height: 400px;
-  }
-  
-  .order-list {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .order-card {
-    border: 1px solid #eee;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  
-  .order-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    background-color: #f8f9fa;
+
+  .order-tab {
     border-bottom: 1px solid #eee;
   }
-  
-  .order-id {
-    font-weight: 600;
-    color: #333;
-  }
-  
-  .order-time {
-    color: #666;
-    font-size: 0.9rem;
-  }
-  
-  .order-items {
-    padding: 1.5rem;
-  }
-  
-  .order-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.75rem;
-  }
-  
-  .order-item:last-child {
-    margin-bottom: 0;
-  }
-  
-  .item-quantity {
-    font-weight: 600;
-    margin-right: 0.75rem;
-    min-width: 40px;
-  }
-  
-  .item-name {
-    flex-grow: 1;
-  }
-  
-  .item-price {
-    font-weight: 600;
-  }
-  
-  .order-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+
+  .order-action-btn {
     padding: 1rem;
-    background-color: #f8f9fa;
-    border-top: 1px solid #eee;
   }
-  
-  .order-total {
-    font-weight: 600;
-    font-size: 1.1rem;
-  }
-  
-  .order-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-  
-  .action-button {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .action-button.accept {
-    background-color: #28a745;
-    color: white;
-  }
-  
-  .action-button.accept:hover {
-    background-color: #218838;
-  }
-  
-  .action-button.reject {
-    background-color: #dc3545;
-    color: white;
-  }
-  
-  .action-button.reject:hover {
-    background-color: #c82333;
-  }
-  
-  .no-orders-message {
-    text-align: center;
-    padding: 3rem;
-  }
-  
-  .no-orders-message p {
-    color: #666;
-    margin-bottom: 0.5rem;
-  }
-  
-  .no-restaurants-message {
-    text-align: center;
-    padding: 3rem;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .no-restaurants-message p {
-    margin-bottom: 1.5rem;
-    color: #666;
-  }
-  
-  .create-restaurant-btn {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    background-color: #ff8c00;
-    color: white;
-    border-radius: 4px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: background-color 0.3s;
-  }
-  
-  .create-restaurant-btn:hover {
-    background-color: #e67e00;
-  }
-  
-  .loading-spinner {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 300px;
-    font-size: 1.2rem;
-    color: #666;
-  }
-  
-  @media (max-width: 768px) {
-    .order-processing-container {
-      padding: 1rem;
-    }
-    
-    .order-list-container {
-      padding: 1rem;
-    }
-    
-    .order-actions {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    
-    .action-button {
-      width: 100%;
-      text-align: center;
-    }
-  }
+}

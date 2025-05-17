@@ -88,6 +88,8 @@ const Checkout = () => {
     return Object.keys(newErrors).length === 0;
   };
   
+ 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -95,57 +97,50 @@ const Checkout = () => {
       setIsSubmitting(true);
       
       try {
-        // Process each restaurant as a separate order
-        const orderPromises = Object.entries(itemsByRestaurant)
-          .filter(([restaurantId]) => restaurantId !== 'unknown')
-          .map(async ([restaurantId, { items }]) => {
-            // Create order request object
-            const orderRequest = {
-              restaurantId: parseInt(restaurantId),
-              orderItems: items.map(item => ({
-                menuItemId: item.id,
-                quantity: item.quantity,
-                specialInstructions: item.specialInstructions || ''
-              })),
-              deliveryAddress: formData.deliveryAddress,
-              specialInstructions: formData.specialInstructions,
-              paymentMethod: formData.paymentMethod
-            };
-            
-            // Send order to API
-            const response = await orderApi.createOrder(orderRequest);
-            
-            if (!response.success) {
-              throw new Error(response.error);
-            }
-            
-            return response.data;
-          });
+        // Ensure we have items and a restaurant
+        if (items.length === 0) {
+          throw new Error('Cart is empty');
+        }
+  
+        const orderRequest = {
+          restaurantId: items[0].restaurantInfo.id,
+          orderItems: items.map(item => ({
+            menuItemId: item.id,
+            quantity: item.quantity,
+            specialInstructions: item.specialInstructions || ''
+          })),
+          deliveryAddress: formData.deliveryAddress,
+          specialInstructions: formData.specialInstructions || '',
+          paymentMethod: formData.paymentMethod
+        };
         
-        // Wait for all orders to be processed
-        const processedOrders = await Promise.all(orderPromises);
+        console.log('Submitting Order:', orderRequest);
         
-        // All orders processed successfully
-        setOrderSuccess(true);
-        clearCart();
+        const response = await orderApi.createOrder(orderRequest);
         
-        // Redirect to order confirmation
-        setTimeout(() => {
+        if (response.success) {
+          // Clear cart and navigate to confirmation
+          clearCart();
           navigate('/order-confirmation', { 
-            state: { orders: processedOrders } 
+            state: { order: response.data } 
           });
-        }, 1500);
-        
+        } else {
+          // Handle order creation error
+          setErrors({
+            submit: response.error || 'Failed to place order. Please try again.'
+          });
+        }
       } catch (error) {
-        console.error('Error placing order:', error);
+        console.error('Unexpected Order Creation Error:', error);
         setErrors({
-          submit: error.message || 'Failed to place order. Please try again.'
+          submit: 'An unexpected error occurred. Please try again.'
         });
       } finally {
         setIsSubmitting(false);
       }
     }
   };
+
   
   if (items.length === 0 && !orderSuccess) {
     return (

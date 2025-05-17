@@ -3,6 +3,40 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api/orders';
 
+// Order status mapping for consistent frontend representation
+export const ORDER_STATUS_MAP = {
+  PENDING: { 
+    label: 'Order Received', 
+    description: 'Your order has been placed and is being processed',
+    color: 'text-info'
+  },
+  PROCESSING: { 
+    label: 'Preparing', 
+    description: 'Restaurant is preparing your order',
+    color: 'text-warning'
+  },
+  READY_FOR_PICKUP: { 
+    label: 'Ready for Pickup', 
+    description: 'Your order is ready to be picked up or delivered',
+    color: 'text-success'
+  },
+  OUT_FOR_DELIVERY: { 
+    label: 'Out for Delivery', 
+    description: 'Your order is on its way',
+    color: 'text-primary'
+  },
+  COMPLETED: { 
+    label: 'Delivered', 
+    description: 'Order has been successfully delivered',
+    color: 'text-success'
+  },
+  CANCELLED: { 
+    label: 'Cancelled', 
+    description: 'Order was cancelled',
+    color: 'text-danger'
+  }
+};
+
 // Helper function to handle API errors
 const handleApiError = (error, context) => {
   console.error(`OrderAPI Error (${context}):`, {
@@ -13,7 +47,8 @@ const handleApiError = (error, context) => {
 
   return { 
     success: false, 
-    error: error.response?.data?.message || `Failed to ${context}. Please try again.`
+    error: error.response?.data?.message || `Failed to ${context}. Please try again.`,
+    details: error.response?.data
   };
 };
 
@@ -23,6 +58,17 @@ const orderApi = {
     try {
       const token = localStorage.getItem('token');
       
+      // Enhanced logging and validation
+      console.log('Order Creation Request:', orderData);
+
+      // Comprehensive data validation
+      if (!orderData.restaurantId) {
+        throw new Error('Restaurant ID is required');
+      }
+      if (!orderData.orderItems || orderData.orderItems.length === 0) {
+        throw new Error('At least one order item is required');
+      }
+
       const response = await axios.post(API_URL, orderData, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -30,12 +76,24 @@ const orderApi = {
         }
       });
       
+      console.log('Order Creation Response:', response.data);
+      
       return { 
         success: true, 
         data: response.data 
       };
     } catch (error) {
-      return handleApiError(error, 'create order');
+      console.error('Order Creation Full Error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to create order. Please try again.',
+        details: error.response?.data
+      };
     }
   },
   
@@ -53,9 +111,14 @@ const orderApi = {
       
       const response = await axios.get(API_URL, config);
       
+      // Sort orders by most recent first
+      const sortedOrders = response.data.sort((a, b) => 
+        new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      
       return { 
         success: true, 
-        data: response.data 
+        data: sortedOrders
       };
     } catch (error) {
       return handleApiError(error, 'fetch orders');
@@ -100,6 +163,15 @@ const orderApi = {
     } catch (error) {
       return handleApiError(error, 'cancel order');
     }
+  },
+
+  // Get order status information
+  getOrderStatusInfo: (status) => {
+    return ORDER_STATUS_MAP[status] || {
+      label: 'Unknown Status',
+      description: 'Status not recognized',
+      color: 'text-secondary'
+    };
   }
 };
 

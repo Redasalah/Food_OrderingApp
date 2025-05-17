@@ -12,6 +12,11 @@ import com.foodordering.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.foodordering.dtos.responses.OrderResponse;
+import com.foodordering.models.Order;
+import com.foodordering.models.OrderStatus;
+import com.foodordering.repositories.OrderRepository;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +28,8 @@ public class RestaurantService {
     
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private OrderRepository orderRepository;
     
     public RestaurantResponse createRestaurant(Long userId, RestaurantRequest restaurantRequest) {
         User owner = userRepository.findById(userId)
@@ -153,6 +160,61 @@ public class RestaurantService {
         response.setCategory(menuItem.getCategory());
         response.setPopular(menuItem.isPopular());
         response.setAvailable(menuItem.isAvailable());
+        return response;
+    }
+
+
+    
+    // Add a method to fetch orders for a restaurant
+    public List<OrderResponse> getRestaurantOrders(Long restaurantId, OrderStatus status) {
+        List<Order> orders;
+        
+        if (status != null) {
+            orders = orderRepository.findByRestaurantIdAndStatusOrderByCreatedAtDesc(restaurantId, status);
+        } else {
+            orders = orderRepository.findByRestaurantIdOrderByCreatedAtDesc(restaurantId);
+        }
+        
+        return orders.stream()
+            .map(this::convertToOrderResponse)
+            .collect(Collectors.toList());
+    }
+    
+    // Helper method to convert Order to OrderResponse (similar to what's in OrderService)
+    private OrderResponse convertToOrderResponse(Order order) {
+        OrderResponse response = new OrderResponse();
+        response.setId(order.getId());
+        response.setUserId(order.getUser().getId());
+        response.setUserName(order.getUser().getName());
+        response.setRestaurantId(order.getRestaurant().getId());
+        response.setRestaurantName(order.getRestaurant().getName());
+        
+        // Convert order items
+        List<OrderResponse.OrderItemResponse> orderItemResponses = order.getOrderItems().stream()
+            .map(item -> {
+                OrderResponse.OrderItemResponse itemResponse = 
+                    new OrderResponse.OrderItemResponse();
+                itemResponse.setId(item.getId());
+                itemResponse.setMenuItemId(item.getMenuItem().getId());
+                itemResponse.setMenuItemName(item.getMenuItem().getName());
+                itemResponse.setQuantity(item.getQuantity());
+                itemResponse.setPrice(item.getPrice());
+                itemResponse.setSpecialInstructions(item.getSpecialInstructions());
+                return itemResponse;
+            })
+            .collect(Collectors.toList());
+        
+        response.setOrderItems(orderItemResponses);
+        response.setSubtotal(order.getSubtotal());
+        response.setDeliveryFee(order.getDeliveryFee());
+        response.setTax(order.getTax());
+        response.setTotal(order.getTotal());
+        response.setDeliveryAddress(order.getDeliveryAddress());
+        response.setSpecialInstructions(order.getSpecialInstructions());
+        response.setStatus(order.getStatus());
+        response.setPaymentMethod(order.getPaymentMethod());
+        response.setCreatedAt(order.getCreatedAt());
+        
         return response;
     }
 }

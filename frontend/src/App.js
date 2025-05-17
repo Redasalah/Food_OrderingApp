@@ -16,6 +16,15 @@ import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
 import NotFound from './pages/NotFound';
 
+import OrderHistory from './pages/OrderHistory';
+import OrderTracking from './pages/OrderTracking';
+
+
+// Delivery Pages
+import DeliveryDashboard from './pages/delivery/DeliveryDashboard';
+import AvailableOrders from './pages/delivery/AvailableOrders';
+import DeliveryOrderPage from './pages/delivery/DeliveryOrderPage';
+
 // Restaurant Pages
 import RestaurantDashboard from './pages/restaurant/RestaurantDashboard';
 import CreateRestaurant from './pages/restaurant/CreateRestaurant';
@@ -167,7 +176,61 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              
+
+              {/* Protected routes - Delivery */}
+              <Route
+                path="/delivery/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Navbar />
+                    <DeliveryDashboard />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/delivery/available-orders"
+                element={
+                  <ProtectedRoute>
+                    <Navbar />
+                    <AvailableOrders />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/delivery/order/:orderId"
+                element={
+                  <ProtectedRoute>
+                    <Navbar />
+                    <DeliveryOrderPage />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Order Routes */}
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute requiredRole="CUSTOMER">
+                    <Navbar />
+                    <OrderHistory />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/orders/:orderId"
+                element={
+                  <ProtectedRoute requiredRole="CUSTOMER">
+                    <Navbar />
+                    <OrderTracking />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
               {/* 404 route */}
               <Route path="*" element={<NotFound />} />
             </Routes>

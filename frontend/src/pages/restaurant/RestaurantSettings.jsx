@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import restaurantApi from '../../api/restaurantApi';
 // Comment out CSS import for now
-// import '../../styles/restaurant/RestaurantSettings.css';
+ import '../../styles/restaurant/RestaurantSettings.css';
 
 const RestaurantSettings = () => {
   const navigate = useNavigate();

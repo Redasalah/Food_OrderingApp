@@ -93,7 +93,7 @@ const RestaurantListing = () => {
             <p>Loading restaurants...</p>
           </div>
         </div>
-        <Footer />
+       
       </>
     );
   }
@@ -191,7 +191,7 @@ const RestaurantListing = () => {
           </div>
         )}
       </div>
-      <Footer />
+    
     </>
   );
 };
