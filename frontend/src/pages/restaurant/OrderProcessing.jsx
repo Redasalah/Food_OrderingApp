@@ -1,187 +1,332 @@
+// src/pages/restaurant/OrderProcessing.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import restaurantApi from '../../api/restaurantApi';
+import '../../styles/restaurant/OrderProcessing.css';
 
 const OrderProcessing = () => {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
+  const [restaurants, setRestaurants] = useState([]);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('ALL');
 
-  // Fetch restaurant orders when component mounts
+  // Fetch owned restaurants and then orders
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        // Assuming the restaurant ID is stored in the user object or can be fetched
-        const restaurantId = currentUser?.restaurantId; 
+        console.log("Fetching restaurants owned by user...");
         
-        if (!restaurantId) {
-          setError('Restaurant ID not found. Please set up your restaurant profile.');
+        // Step 1: Get restaurants owned by the current user
+        const restaurantsResponse = await restaurantApi.getMyRestaurants();
+        
+        if (!restaurantsResponse.success) {
+          setError(restaurantsResponse.error || 'Failed to load your restaurants');
           setLoading(false);
           return;
         }
         
-        const response = await axios.get(`/api/restaurants/${restaurantId}/orders`, {
-          headers: {
-            Authorization: `Bearer ${currentUser.token}`
-          }
-        });
+        console.log("Restaurants response:", restaurantsResponse.data);
         
-        setOrders(response.data);
-        setLoading(false);
+        if (restaurantsResponse.data.length === 0) {
+          setError('You don\'t have any restaurants. Please create a restaurant first.');
+          setLoading(false);
+          return;
+        }
+        
+        setRestaurants(restaurantsResponse.data);
+        
+        // Step 2: Set the first restaurant as selected by default
+        const firstRestaurantId = restaurantsResponse.data[0].id;
+        setSelectedRestaurantId(firstRestaurantId);
+        
+        // Step 3: Fetch orders for the selected restaurant
+        await fetchRestaurantOrders(firstRestaurantId);
+        
       } catch (err) {
-        setError('Failed to fetch orders. Please try again later.');
+        console.error("Error in initial data fetch:", err);
+        setError('An unexpected error occurred. Please try again later.');
         setLoading(false);
-        console.error('Error fetching restaurant orders:', err);
       }
     };
     
-    fetchOrders();
-  }, [currentUser]);
-
-  // Update order status
-  const updateOrderStatus = async (orderId, newStatus) => {
+    fetchData();
+  }, []);
+  
+  // Function to fetch orders for a specific restaurant
+  const fetchRestaurantOrders = async (restaurantId, status = null) => {
     try {
-      await axios.put(`/api/orders/${orderId}/status`, 
-        { status: newStatus },
-        {
-          headers: {
-            Authorization: `Bearer ${currentUser.token}`
-          }
-        }
-      );
+      console.log(`Fetching orders for restaurant ID: ${restaurantId}, status: ${status || 'all'}`);
       
-      // Refresh orders after updating
-      const updatedOrders = orders.map(order => {
-        if (order.id === orderId) {
-          return { ...order, status: newStatus };
-        }
-        return order;
-      });
+      const response = await restaurantApi.getRestaurantOrders(restaurantId, status);
       
-      setOrders(updatedOrders);
+      if (response.success) {
+        console.log("Orders data:", response.data);
+        setOrders(response.data);
+      } else {
+        console.error("Failed to fetch orders:", response.error);
+        setError(response.error || 'Failed to fetch orders');
+      }
     } catch (err) {
-      setError('Failed to update order status. Please try again.');
-      console.error('Error updating order status:', err);
+      console.error("Error fetching restaurant orders:", err);
+      setError('Failed to fetch orders. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle order acceptance
-  const handleAcceptOrder = (orderId) => {
-    updateOrderStatus(orderId, 'PREPARING');
+  // Handle restaurant change in dropdown
+  const handleRestaurantChange = (e) => {
+    const newRestaurantId = parseInt(e.target.value);
+    setSelectedRestaurantId(newRestaurantId);
+    fetchRestaurantOrders(newRestaurantId, filterStatus === 'ALL' ? null : filterStatus);
   };
-
-  // Handle order rejection
-  const handleRejectOrder = (orderId) => {
-    updateOrderStatus(orderId, 'REJECTED');
+  
+  // Update order status function with debugging logs
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      console.log(`Updating order ${orderId} to status ${newStatus}`);
+      
+      // Add this to debug
+      console.log("Before API call to update status");
+      
+      const response = await restaurantApi.updateOrderStatus(orderId, newStatus);
+      
+      // Add this to debug
+      console.log("After API call to update status, response:", response);
+      
+      if (response.success) {
+        console.log("Order status updated successfully:", response.data);
+        
+        // Refresh orders after status update
+        await fetchRestaurantOrders(selectedRestaurantId, filterStatus === 'ALL' ? null : filterStatus);
+        
+        // Add this to debug
+        console.log("After refreshing orders");
+      } else {
+        console.error("Failed to update order status:", response.error);
+        setError(response.error || 'Failed to update order status');
+      }
+    } catch (err) {
+      console.error("Error updating order status:", err);
+      console.error("Error details:", err.response ? err.response.data : 'No response data');
+      setError('An error occurred while updating the order status. Check console for details.');
+    }
   };
-
-  // Handle order ready for pickup
-  const handleOrderReady = (orderId) => {
-    updateOrderStatus(orderId, 'READY_FOR_PICKUP');
-  };
-
+  
   // Format date for display
   const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    return new Date(dateString).toLocaleString();
   };
-
-  if (loading) return <div className="text-center p-10">Loading orders...</div>;
   
-  if (error) return (
-    <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 m-4" role="alert">
-      <p>{error}</p>
-    </div>
-  );
-
+  if (loading) {
+    return <div className="loading-container">Loading orders...</div>;
+  }
+  
+  if (error) {
+    return (
+      <div className="restaurant-dashboard-container">
+        <div className="error-message">
+          <h3>Error</h3>
+          <p>{error}</p>
+          <button 
+            className="btn btn-primary"
+            onClick={() => window.location.reload()}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  // Filter orders based on selected status
+  const filteredOrders = filterStatus === 'ALL' 
+    ? orders 
+    : orders.filter(order => order.status === filterStatus);
+    
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Order Processing</h1>
+    <div className="restaurant-dashboard-container">
+      <div className="restaurant-sidebar">
+        <div className="restaurant-profile">
+          <h3>Restaurant Dashboard</h3>
+          <p>Welcome, {user?.name || 'Restaurant Manager'}</p>
+        </div>
+        <nav className="restaurant-nav">
+          <Link to="/restaurant/dashboard" className="nav-item">Dashboard</Link>
+          <Link to="/restaurant/menu" className="nav-item">Manage Menu</Link>
+          <Link to="/restaurant/orders" className="nav-item active">Process Orders</Link>
+          <Link to="/restaurant/settings" className="nav-item">Restaurant Profile</Link>
+        </nav>
+      </div>
       
-      {orders.length === 0 ? (
-        <div className="text-center p-10 bg-gray-50 rounded-lg">
-          <p className="text-gray-600">No orders to process at this time.</p>
+      <div className="restaurant-main-content">
+        <div className="dashboard-header">
+          <h1>Process Orders</h1>
+          <p>Manage and update customer orders</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {orders.map((order) => (
-            <div key={order.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-lg font-semibold">Order #{order.id}</h2>
-                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                  order.status === 'NEW' ? 'bg-blue-100 text-blue-800' :
-                  order.status === 'PREPARING' ? 'bg-yellow-100 text-yellow-800' :
-                  order.status === 'READY_FOR_PICKUP' ? 'bg-green-100 text-green-800' :
-                  order.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {order.status}
-                </span>
-              </div>
-              
-              <p className="text-sm text-gray-500 mb-4">
-                Placed: {formatDate(order.createdAt)}
-              </p>
-              
-              <div className="mb-4">
-                <h3 className="font-medium mb-2">Items:</h3>
-                <ul className="list-disc list-inside">
-                  {order.items.map((item) => (
-                    <li key={item.id} className="text-sm">
-                      {item.quantity}x {item.menuItem.name} - ${item.price.toFixed(2)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div className="flex justify-between items-center mb-4">
-                <span className="font-medium">Total:</span>
-                <span className="font-bold">${order.totalPrice.toFixed(2)}</span>
-              </div>
-
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="font-medium mb-2">Customer:</h3>
-                <p className="text-sm">{order.customer.name}</p>
-                <p className="text-sm">{order.customer.phone}</p>
-              </div>
-              
-              {order.status === 'NEW' && (
-                <div className="mt-4 flex space-x-2">
-                  <button
-                    onClick={() => handleAcceptOrder(order.id)}
-                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex-1"
-                  >
-                    Accept
-                  </button>
-                  <button
-                    onClick={() => handleRejectOrder(order.id)}
-                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 flex-1"
-                  >
-                    Reject
-                  </button>
-                </div>
-              )}
-              
-              {order.status === 'PREPARING' && (
-                <button
-                  onClick={() => handleOrderReady(order.id)}
-                  className="mt-4 w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Mark as Ready
-                </button>
-              )}
+        
+        {/* Restaurant Selector */}
+        {restaurants.length > 1 && (
+          <div className="restaurant-selector">
+            <div className="restaurant-selector-content">
+              <label htmlFor="restaurant-select">Select Restaurant:</label>
+              <select 
+                id="restaurant-select"
+                value={selectedRestaurantId || ''}
+                onChange={handleRestaurantChange}
+              >
+                {restaurants.map(restaurant => (
+                  <option key={restaurant.id} value={restaurant.id}>
+                    {restaurant.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          ))}
+          </div>
+        )}
+        
+        <div className="order-status-tabs">
+          <button 
+            className={filterStatus === 'ALL' ? 'active' : ''} 
+            onClick={() => {
+              setFilterStatus('ALL');
+              fetchRestaurantOrders(selectedRestaurantId);
+            }}
+          >
+            All Orders
+          </button>
+          <button 
+            className={filterStatus === 'PENDING' ? 'active' : ''} 
+            onClick={() => {
+              setFilterStatus('PENDING');
+              fetchRestaurantOrders(selectedRestaurantId, 'PENDING');
+            }}
+          >
+            Pending
+          </button>
+          <button 
+            className={filterStatus === 'CONFIRMED' ? 'active' : ''} 
+            onClick={() => {
+              setFilterStatus('CONFIRMED');
+              fetchRestaurantOrders(selectedRestaurantId, 'CONFIRMED');
+            }}
+          >
+            Confirmed
+          </button>
+          <button 
+            className={filterStatus === 'READY_FOR_PICKUP' ? 'active' : ''} 
+            onClick={() => {
+              setFilterStatus('READY_FOR_PICKUP');
+              fetchRestaurantOrders(selectedRestaurantId, 'READY_FOR_PICKUP');
+            }}
+          >
+            Ready for Pickup
+          </button>
+          <button 
+            className={filterStatus === 'OUT_FOR_DELIVERY' ? 'active' : ''} 
+            onClick={() => {
+              setFilterStatus('OUT_FOR_DELIVERY');
+              fetchRestaurantOrders(selectedRestaurantId, 'OUT_FOR_DELIVERY');
+            }}
+          >
+            Out for Delivery
+          </button>
+          <button 
+            className={filterStatus === 'DELIVERED' ? 'active' : ''} 
+            onClick={() => {
+              setFilterStatus('DELIVERED');
+              fetchRestaurantOrders(selectedRestaurantId, 'DELIVERED');
+            }}
+          >
+            Delivered
+          </button>
         </div>
-      )}
+        
+        <div className="orders-list">
+          {filteredOrders.length === 0 ? (
+            <p className="no-orders-message">No orders found with the selected status.</p>
+          ) : (
+            filteredOrders.map(order => (
+              <div key={order.id} className="order-card">
+                <div className="order-header">
+                  <div className="order-id-section">
+                    <h3>Order #{order.id}</h3>
+                    <span className={`order-status ${order.status.toLowerCase()}`}>
+                      {order.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <div className="order-time">
+                    {formatDate(order.createdAt)}
+                  </div>
+                </div>
+                
+                <div className="order-content">
+                  <div className="customer-details">
+                    <h4>Customer Details</h4>
+                    <p><strong>Name:</strong> {order.userName}</p>
+                    <p><strong>Address:</strong> {order.deliveryAddress}</p>
+                    {order.specialInstructions && (
+                      <p><strong>Instructions:</strong> {order.specialInstructions}</p>
+                    )}
+                  </div>
+                  
+                  <div className="order-items-details">
+                    <h4>Order Items</h4>
+                    <ul className="order-items-list">
+                      {order.orderItems.map((item) => (
+                        <li key={item.id}>
+                          <span className="item-name">{item.quantity}x {item.menuItemName}</span>
+                          <span className="item-price">${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="order-total">
+                      <span>Total</span>
+                      <span>${parseFloat(order.total).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="order-actions">
+                  {order.status === 'PENDING' && (
+                    <button 
+                      className="action-button accept"
+                      onClick={() => updateOrderStatus(order.id, 'CONFIRMED')}
+                    >
+                      Accept Order
+                    </button>
+                  )}
+                  
+                  {order.status === 'CONFIRMED' && (
+                    <button 
+                      className="action-button ready"
+                      onClick={() => updateOrderStatus(order.id, 'READY_FOR_PICKUP')}
+                    >
+                      Mark as Ready
+                    </button>
+                  )}
+                  
+                  {(order.status === 'PENDING' || order.status === 'CONFIRMED') && (
+                    <button 
+                      className="action-button cancel"
+                      onClick={() => updateOrderStatus(order.id, 'CANCELLED')}
+                    >
+                      Cancel Order
+                    </button>
+                  )}
+                  
+                  <button className="action-button print" onClick={() => window.print()}>Print Order</button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 package com.foodordering.controllers;
-
+import java.util.Map;
 import com.foodordering.dtos.requests.RestaurantRequest;
 import com.foodordering.dtos.responses.ApiResponse;
 import com.foodordering.dtos.responses.OrderResponse;
@@ -7,6 +7,7 @@ import com.foodordering.dtos.responses.RestaurantResponse;
 import com.foodordering.exceptions.ResourceNotFoundException;
 import com.foodordering.models.OrderStatus;
 import com.foodordering.repositories.UserRepository;
+import com.foodordering.services.OrderService;
 import com.foodordering.services.RestaurantService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 public class RestaurantController {
+@Autowired
+    private OrderService orderService;
 
     @Autowired
     private RestaurantService restaurantService;
@@ -65,6 +68,35 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurant);
     }
  
+
+
+    // Get orders for a specific restaurant
+@GetMapping("/restaurants/{restaurantId}/orders")
+public ResponseEntity<List<OrderResponse>> getRestaurantOrders(
+        @AuthenticationPrincipal UserDetails userDetails,
+        @PathVariable Long restaurantId,
+        @RequestParam(required = false) OrderStatus status
+) {
+    String email = userDetails.getUsername();
+    
+    // This correctly calls the method with the right number of parameters
+    List<OrderResponse> orders = orderService.getRestaurantOrdersByStatus(email, restaurantId, status);
+    return ResponseEntity.ok(orders);
+}
+  
+      // Process order status for restaurant staff
+      @PutMapping("/orders/{orderId}/process")
+      public ResponseEntity<OrderResponse> processOrderStatus(
+              @AuthenticationPrincipal UserDetails userDetails,
+              @PathVariable Long orderId,
+              @RequestBody Map<String, String> statusUpdate) {
+          
+          String email = userDetails.getUsername();
+          OrderStatus newStatus = OrderStatus.valueOf(statusUpdate.get("status"));
+          OrderResponse updatedOrder = orderService.processInitialOrderStages(email, orderId, newStatus);
+          
+          return ResponseEntity.ok(updatedOrder);
+      }
     // Update a restaurant
     @PutMapping("/restaurants/{id}")
     public ResponseEntity<RestaurantResponse> updateRestaurant(
@@ -90,22 +122,11 @@ public class RestaurantController {
         return ResponseEntity.ok(new ApiResponse(true, "Restaurant deleted successfully"));
     }
     
-    // Get orders for a specific restaurant
-    @GetMapping("/restaurants/{restaurantId}/orders")
-    public ResponseEntity<List<OrderResponse>> getRestaurantOrders(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long restaurantId,
-            @RequestParam(required = false) OrderStatus status
-    ) {
-        // Get user ID from JWT token
-        String email = userDetails.getUsername();
-        Long userId = getUserIdFromEmail(email);
-        
-        // Verify that the user owns the restaurant before fetching orders
-        List<OrderResponse> orders = restaurantService.getRestaurantOrders(restaurantId, status);
-        return ResponseEntity.ok(orders);
-    }
-    
+
+
+
+
+   
     // Helper method to get user ID from email
     private Long getUserIdFromEmail(String email) {
         return userRepository.findByEmail(email)

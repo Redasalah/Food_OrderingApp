@@ -81,8 +81,15 @@ public class RestaurantService {
         return convertToResponse(restaurant);
     }
     
-    public List<RestaurantResponse> getRestaurantsByOwner(Long ownerId) {
-        List<Restaurant> restaurants = restaurantRepository.findByOwnerId(ownerId);
+    public List<RestaurantResponse> getRestaurantsByOwner(Long userId) {
+        List<Restaurant> restaurants = restaurantRepository.findByOwnerId(userId);
+        
+        // Debug logging
+        System.out.println("Restaurants for user ID " + userId + ": " + restaurants.size());
+        restaurants.forEach(r -> 
+            System.out.println("Restaurant: ID=" + r.getId() + ", Name=" + r.getName())
+        );
+        
         return restaurants.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -165,14 +172,22 @@ public class RestaurantService {
 
 
     
-    // Add a method to fetch orders for a restaurant
-    public List<OrderResponse> getRestaurantOrders(Long restaurantId, OrderStatus status) {
-        List<Order> orders;
+    public List<OrderResponse> getRestaurantOrders(String email, OrderStatus status) {
+        // Find the user
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
+        // Find the restaurant owned by this user
+        Restaurant restaurant = restaurantRepository.findByOwnerId(user.getId())
+            .stream()
+            .findFirst()
+            .orElseThrow(() -> new ResourceNotFoundException("Restaurant ID not found. Please set up your restaurant profile."));
+        
+        List<Order> orders;
         if (status != null) {
-            orders = orderRepository.findByRestaurantIdAndStatusOrderByCreatedAtDesc(restaurantId, status);
+            orders = orderRepository.findByRestaurantIdAndStatusOrderByCreatedAtDesc(restaurant.getId(), status);
         } else {
-            orders = orderRepository.findByRestaurantIdOrderByCreatedAtDesc(restaurantId);
+            orders = orderRepository.findByRestaurantIdOrderByCreatedAtDesc(restaurant.getId());
         }
         
         return orders.stream()

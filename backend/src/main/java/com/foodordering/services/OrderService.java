@@ -45,6 +45,7 @@ public class OrderService {
         order.setRestaurant(restaurant);
         order.setDeliveryAddress(orderRequest.getDeliveryAddress());
         order.setSpecialInstructions(orderRequest.getSpecialInstructions());
+        order.setStatus(OrderStatus.PENDING); // Explicitly set status to PENDING
         
         // Set payment method
         try {
@@ -176,6 +177,188 @@ public class OrderService {
         
         // Convert to response DTO
         return convertToOrderResponse(cancelledOrder);
+    }
+    
+    // Method to get orders by status for a specific restaurant
+    public List<OrderResponse> getRestaurantOrdersByStatus(String email, Long restaurantId, OrderStatus status) {
+        // Find user
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        // Find restaurant
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found"));
+        
+        // Find restaurants owned by this user to check permissions
+        List<Restaurant> userRestaurants = restaurantRepository.findByOwnerId(user.getId());
+        
+        // Log restaurant details
+        System.out.println("Restaurants owned by user: " + userRestaurants.size());
+        userRestaurants.forEach(r -> 
+            System.out.println("Restaurant: ID=" + r.getId() + ", Name=" + r.getName())
+        );
+        
+        // Check if the requested restaurant belongs to the user
+        boolean isOwner = userRestaurants.stream()
+            .anyMatch(r -> r.getId().equals(restaurantId));
+            
+        if (!isOwner && user.getRole() == Role.RESTAURANT_STAFF) {
+            System.out.println("No restaurant found with ID " + restaurantId + " for user " + user.getName());
+            throw new ResourceNotFoundException("Restaurant not found or you don't have permission to view this restaurant's orders");
+        }
+        
+        // Fetch orders
+        List<Order> orders;
+        if (status != null) {
+            orders = orderRepository.findByRestaurantIdAndStatusOrderByCreatedAtDesc(restaurantId, status);
+        } else {
+            orders = orderRepository.findByRestaurantIdOrderByCreatedAtDesc(restaurantId);
+        }
+        
+        // Log order details
+        System.out.println("Found " + orders.size() + " orders for restaurant ID " + restaurantId);
+        
+        // Convert to DTOs
+        return orders.stream()
+                .map(this::convertToOrderResponse)
+                .collect(Collectors.toList());
+    }
+    
+    // Update order status
+    @Transactional
+    public OrderResponse updateOrderStatus(String email, Long orderId, OrderStatus newStatus) {
+        // Find user who is updating the status
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        // Find the order
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        
+        // Determine the current user's role
+        Role userRole = user.getRole();
+        OrderStatus currentStatus = order.getStatus();
+        
+        // Validation logic for status transitions
+        switch (userRole) {
+            case RESTAURANT_STAFF:
+                // Check if the restaurant staff owns this restaurant
+                if (!order.getRestaurant().getOwner().getId().equals(user.getId())) {
+                    throw new IllegalStateException("You are not authorized to modify this order");
+                }
+                
+                // Restaurant staff can move from PENDING to CONFIRMED, or CONFIRMED to READY_FOR_PICKUP
+                if (currentStatus == OrderStatus.PENDING && newStatus == OrderStatus.CONFIRMED) {
+                    order.setStatus(newStatus);
+                } else if (currentStatus == OrderStatus.CONFIRMED && newStatus == OrderStatus.READY_FOR_PICKUP) {
+                    order.setStatus(newStatus);
+                } else {
+                    throw new IllegalStateException("Invalid status transition for restaurant staff");
+                }
+                break;
+            
+            case DELIVERY_PERSONNEL:
+                // Delivery personnel can move from READY_FOR_PICKUP to OUT_FOR_DELIVERY, 
+                // or OUT_FOR_DELIVERY to DELIVERED
+                if (currentStatus == OrderStatus.READY_FOR_PICKUP && newStatus == OrderStatus.OUT_FOR_DELIVERY) {
+                    order.setStatus(newStatus);
+                } else if (currentStatus == OrderStatus.OUT_FOR_DELIVERY && newStatus == OrderStatus.DELIVERED) {
+                    order.setStatus(newStatus);
+                } else {
+                    throw new IllegalStateException("Invalid status transition for delivery personnel");
+                }
+                break;
+            
+            case CUSTOMER:
+                // Customers can only cancel PENDING or CONFIRMED orders
+                if ((currentStatus == OrderStatus.PENDING || currentStatus == OrderStatus.CONFIRMED) 
+                    && newStatus == OrderStatus.CANCELLED) {
+                    order.setStatus(newStatus);
+                } else {
+                    throw new IllegalStateException("You cannot cancel this order at this stage");
+                }
+                break;
+            
+            default:
+                throw new IllegalStateException("Unauthorized to modify order status");
+        }
+        
+        // Save and return updated order
+        Order updatedOrder = orderRepository.save(order);
+        return convertToOrderResponse(updatedOrder);
+    }
+    
+    // Additional method to help restaurant staff move orders through initial stages
+    @Transactional
+    public OrderResponse processInitialOrderStages(String email, Long orderId, OrderStatus newStatus) {
+        // Find user (restaurant staff)
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        // Find the order
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        
+        // Validate that the user is restaurant staff and owns the restaurant
+        if (user.getRole() != Role.RESTAURANT_STAFF || 
+            !order.getRestaurant().getOwner().getId().equals(user.getId())) {
+            throw new IllegalStateException("You are not authorized to process this order");
+        }
+        
+        // Initial order stages progression
+        OrderStatus currentStatus = order.getStatus();
+        
+        if (currentStatus == OrderStatus.PENDING && newStatus == OrderStatus.CONFIRMED) {
+            order.setStatus(newStatus);
+        } else if (currentStatus == OrderStatus.CONFIRMED && newStatus == OrderStatus.READY_FOR_PICKUP) {
+            order.setStatus(newStatus);
+        } else {
+            throw new IllegalStateException("Invalid order status progression");
+        }
+        
+        // Save and return updated order
+        Order updatedOrder = orderRepository.save(order);
+        return convertToOrderResponse(updatedOrder);
+    }
+    
+    // NEW METHOD: Get all orders by status (for delivery personnel to see available orders)
+    public List<OrderResponse> getOrdersByStatus(OrderStatus status) {
+        List<Order> orders = orderRepository.findByStatus(status);
+        
+        return orders.stream()
+                .map(this::convertToOrderResponse)
+                .collect(Collectors.toList());
+    }
+    
+    // NEW METHOD: Assign order to delivery personnel
+    @Transactional
+    public OrderResponse assignOrderToDelivery(String email, Long orderId) {
+        // Find delivery personnel
+        User deliveryPersonnel = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery personnel not found"));
+        
+        // Verify user is delivery personnel
+        if (deliveryPersonnel.getRole() != Role.DELIVERY_PERSONNEL) {
+            throw new IllegalStateException("Only delivery personnel can accept orders for delivery");
+        }
+        
+        // Find the order
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        
+        // Verify order is ready for pickup
+        if (order.getStatus() != OrderStatus.READY_FOR_PICKUP) {
+            throw new IllegalStateException("Only orders that are ready for pickup can be accepted for delivery");
+        }
+        
+        // Update order status to OUT_FOR_DELIVERY
+        order.setStatus(OrderStatus.OUT_FOR_DELIVERY);
+        // Could also store the delivery personnel ID in the order if needed
+        
+        // Save updated order
+        Order updatedOrder = orderRepository.save(order);
+        
+        return convertToOrderResponse(updatedOrder);
     }
     
     // Helper method to convert Order to OrderResponse

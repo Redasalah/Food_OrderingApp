@@ -10,22 +10,26 @@ const AvailableOrders = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchAvailableOrders = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('/api/delivery/available-orders', {
-          headers: {
-            Authorization: `Bearer ${currentUser.token}`
-          }
-        });
-        setAvailableOrders(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to fetch available orders. Please try again later.');
-        setLoading(false);
-        console.error('Error fetching available orders:', err);
+    // In AvailableOrders.jsx
+const fetchAvailableOrders = async () => {
+  try {
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    
+    const response = await axios.get('/api/delivery/available-orders', {
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-    };
+    });
+    
+    setAvailableOrders(response.data);
+    setLoading(false);
+  } catch (err) {
+    setError('Failed to fetch available orders. Please try again later.');
+    setLoading(false);
+    console.error('Error fetching available orders:', err);
+  }
+};
 
     fetchAvailableOrders();
     

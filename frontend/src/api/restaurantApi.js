@@ -81,7 +81,34 @@ getRestaurantOrders: async (restaurantId, status = null) => {
     };
   }
 },
-
+// Add to restaurantApi.js
+updateOrderStatus: async (orderId, status) => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    const response = await axios.put(
+      `${API_URL}/orders/${orderId}/status`,
+      { status },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return { 
+      success: true, 
+      data: response.data 
+    };
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    return { 
+      success: false, 
+      error: error.response?.data?.message || 'Failed to update order status' 
+    };
+  }
+},
  
   // Get restaurants owned by the logged-in user (protected endpoint)
   getMyRestaurants: async () => {

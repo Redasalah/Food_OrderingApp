@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -70,5 +71,28 @@ public class OrderController {
         String email = userDetails.getUsername();
         OrderResponse cancelledOrder = orderService.cancelOrder(email, orderId);
         return ResponseEntity.ok(cancelledOrder);
+    }
+    
+    // Update order status
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<OrderResponse> updateOrderStatus(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long orderId,
+            @RequestBody Map<String, String> statusUpdate) {
+        
+        String email = userDetails.getUsername();
+        String newStatusStr = statusUpdate.get("status");
+        
+        if (newStatusStr == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        try {
+            OrderStatus newStatus = OrderStatus.valueOf(newStatusStr.toUpperCase());
+            OrderResponse updatedOrder = orderService.updateOrderStatus(email, orderId, newStatus);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

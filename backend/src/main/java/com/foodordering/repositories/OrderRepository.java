@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+
+
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     // Find orders for a specific user, ordered by most recent first
@@ -17,8 +19,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     // Find orders for a specific user with a specific status, ordered by most recent first
     List<Order> findByUserAndStatusOrderByCreatedAtDesc(User user, OrderStatus status);
+    
+    // Find orders by restaurant ID, ordered by most recent first
     List<Order> findByRestaurantIdOrderByCreatedAtDesc(Long restaurantId);
+    
+    // Find orders by restaurant ID and status, ordered by most recent first
     List<Order> findByRestaurantIdAndStatusOrderByCreatedAtDesc(Long restaurantId, OrderStatus status);
+    
     // Find a specific order for a user
     Optional<Order> findByIdAndUser(Long orderId, User user);
+    
+    // Find orders by status
+    List<Order> findByStatus(OrderStatus status);
 }
