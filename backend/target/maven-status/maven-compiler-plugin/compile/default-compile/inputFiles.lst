@@ -40,5 +40,6 @@
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/repositories/RestaurantRepository.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/repositories/UserRepository.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/dtos/requests/RegisterRequest.java
+/Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/dtos/responses/DeliveryDashboardResponse.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/models/OrderItem.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/controllers/MenuItemController.java

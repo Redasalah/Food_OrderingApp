@@ -1,252 +1,366 @@
+// src/pages/delivery/DeliveryOrderPage.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import '../../styles/delivery/DeliveryOrderPage.css';
 
 const DeliveryOrderPage = () => {
   const { orderId } = useParams();
-  const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentStatus, setCurrentStatus] = useState('');
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  
+  const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [customerContactAttempted, setCustomerContactAttempted] = useState(false);
+
+  // Define status steps for the progress indicator
+  const DELIVERY_STEPS = [
+    { id: 'READY_FOR_PICKUP', label: 'Ready for Pickup' },
+    { id: 'OUT_FOR_DELIVERY', label: 'Out for Delivery' },
+    { id: 'DELIVERED', label: 'Delivered' }
+  ];
+
+  // Fetch order details on component mount
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`/api/delivery/orders/${orderId}`, {
+        const token = localStorage.getItem('token');
+  
+        if (!token) {
+          console.error("No token found");
+          setError("Unauthorized. Please log in again.");
+          setLoading(false);
+          return;
+        }
+  
+        console.log("Fetching order with ID:", orderId);
+  
+        const response = await axios.get(`http://localhost:8080/api/delivery/orders/${orderId}`, {
           headers: {
-            Authorization: `Bearer ${currentUser.token}`
+            Authorization: `Bearer ${token}`
           }
         });
+  
+        console.log('Order details fetched:', response.data);
         setOrder(response.data);
         setCurrentStatus(response.data.status);
-        setLoading(false);
       } catch (err) {
-        setError('Failed to fetch order details. Please try again later.');
+        console.error('❌ Error fetching order details:', err);
+        console.error('❌ Error response:', err.response?.data);
+        setError(err.response?.data?.message || 'Failed to fetch order details. Please try again.');
+      } finally {
+        console.log("✅ Finished attempt to load order details.");
         setLoading(false);
-        console.error('Error fetching order details:', err);
       }
     };
-
-    if (orderId) {
-      fetchOrderDetails();
-    }
-  }, [orderId, currentUser]);
-
+  
+    fetchOrderDetails();
+  }, [orderId]);
+  
+  // Update order status
   const updateOrderStatus = async (newStatus) => {
     try {
-      await axios.put(`/api/delivery/orders/${orderId}/status`, 
+      const token = localStorage.getItem('token');
+      console.log(`Updating order ${orderId} status to ${newStatus}`);
+      
+      const response = await axios.put(
+        `http://localhost:8080/api/delivery/orders/${orderId}/status`, 
         { status: newStatus },
         {
           headers: {
-            Authorization: `Bearer ${currentUser.token}`
+            Authorization: `Bearer ${token}`
           }
         }
       );
       
-      setCurrentStatus(newStatus);
+      console.log('Order status updated:', response.data);
+      setOrder(response.data);
+      setCurrentStatus(response.data.status);
       
-      // If order is completed, redirect to available orders after a delay
+      // Close confirmation modal if it's open
+      setIsConfirmModalOpen(false);
+      
+      // If order is completed, redirect after a delay
       if (newStatus === 'DELIVERED') {
         setTimeout(() => {
           navigate('/delivery/available-orders');
         }, 3000);
       }
+      
+      return true;
     } catch (err) {
-      setError('Failed to update order status. Please try again.');
       console.error('Error updating order status:', err);
+      console.error('Error details:', err.response?.data);
+      setError('Failed to update order status. Please try again.');
+      return false;
     }
   };
 
-  const handlePickupConfirm = () => {
-    updateOrderStatus('PICKED_UP');
+  // Handle pickup confirmation
+  const handlePickupConfirm = async () => {
+    await updateOrderStatus('OUT_FOR_DELIVERY');
   };
 
+  // Handle delivery confirmation click (show confirmation modal)
   const handleDeliveryConfirm = () => {
     setIsConfirmModalOpen(true);
   };
 
-  const completeDelivery = () => {
-    updateOrderStatus('DELIVERED');
-    setIsConfirmModalOpen(false);
+  // Handle final delivery completion
+  const completeDelivery = async () => {
+    await updateOrderStatus('DELIVERED');
   };
 
+  // Cancel confirmation modal
   const cancelConfirmation = () => {
     setIsConfirmModalOpen(false);
   };
 
-  const openGoogleMaps = (address) => {
+  // Open Google Maps navigation
+  const openNavigation = (address) => {
     // Format the address for Google Maps URL
-    const formattedAddress = encodeURIComponent(
-      `${address.street}, ${address.city}, ${address.zipCode}`
-    );
+    const formattedAddress = encodeURIComponent(address);
     window.open(`https://www.google.com/maps/search/?api=1&query=${formattedAddress}`, '_blank');
   };
 
+  // Call customer
   const callCustomer = (phoneNumber) => {
+    setCustomerContactAttempted(true);
     window.location.href = `tel:${phoneNumber}`;
   };
 
-  if (loading) return <div className="text-center p-10">Loading order details...</div>;
-  
-  if (error) return (
-    <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 m-4" role="alert">
-      <p>{error}</p>
-    </div>
-  );
+  // Format currency
+  const formatCurrency = (amount) => {
+    return `$${parseFloat(amount).toFixed(2)}`;
+  };
 
-  if (!order) return <div className="text-center p-10">Order not found</div>;
+  // Return a loading state while fetching data
+  if (loading) {
+    return (
+      <div className="delivery-order-container">
+        <div className="loading-message">Loading order details...</div>
+      </div>
+    );
+  }
+
+  // Return an error message if there was a problem
+  if (error) {
+    return (
+      <div className="delivery-order-container">
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={() => navigate('/delivery/available-orders')} className="back-button">
+            Back to Available Orders
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // If no order found
+  if (!order) {
+    return (
+      <div className="delivery-order-container">
+        <div className="no-order-message">
+          <p>Order not found</p>
+          <button onClick={() => navigate('/delivery/available-orders')} className="back-button">
+            Back to Available Orders
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate which steps are complete
+  const getStepStatus = (stepId) => {
+    const stepIndex = DELIVERY_STEPS.findIndex(step => step.id === stepId);
+    const currentIndex = DELIVERY_STEPS.findIndex(step => step.id === currentStatus);
+    
+    if (currentIndex >= stepIndex) {
+      return 'completed';
+    }
+    return '';
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Order #{orderId}</h1>
-      
-      {/* Status Banner */}
-      <div className={`mb-6 p-4 rounded-lg ${
-        currentStatus === 'READY_FOR_PICKUP' ? 'bg-blue-100' :
-        currentStatus === 'PICKED_UP' ? 'bg-yellow-100' :
-        currentStatus === 'DELIVERED' ? 'bg-green-100' :
-        'bg-gray-100'
-      }`}>
-        <h2 className="font-semibold text-lg mb-2">Status: {currentStatus.replace('_', ' ')}</h2>
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
-          <div className={`h-2.5 rounded-full ${
-            currentStatus === 'READY_FOR_PICKUP' ? 'w-1/3 bg-blue-600' :
-            currentStatus === 'PICKED_UP' ? 'w-2/3 bg-yellow-600' :
-            currentStatus === 'DELIVERED' ? 'w-full bg-green-600' :
-            'w-0'
-          }`}></div>
-        </div>
+    <div className="delivery-order-container">
+      <div className="delivery-order-header">
+        <h1>Order #{orderId}</h1>
+        <div className="status-badge">{currentStatus.replace(/_/g, ' ')}</div>
       </div>
-      
-      {/* Restaurant Info */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Restaurant</h2>
-        <div className="mb-4">
-          <p className="font-medium">{order.restaurant.name}</p>
-          <p className="text-gray-500">{order.restaurant.address.street}</p>
-          <p className="text-gray-500">{order.restaurant.address.city}, {order.restaurant.address.zipCode}</p>
-          <p className="text-gray-500">{order.restaurant.phone}</p>
-        </div>
-        
-        <button
-          onClick={() => openGoogleMaps(order.restaurant.address)}
-          className="flex items-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200"
-        >
-          Navigate to Restaurant
-        </button>
+
+      {/* Delivery Progress Tracker */}
+      <div className="delivery-progress">
+        {DELIVERY_STEPS.map((step, index) => (
+          <div key={step.id} className={`progress-step ${getStepStatus(step.id)}`}>
+            <div className="step-number">{index + 1}</div>
+            <div className="step-label">{step.label}</div>
+            {index < DELIVERY_STEPS.length - 1 && <div className="connector-line"></div>}
+          </div>
+        ))}
       </div>
-      
-      {/* Customer Info */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Customer</h2>
-        <div className="mb-4">
-          <p className="font-medium">{order.customer.name}</p>
-          <p className="text-gray-500">{order.deliveryAddress.street}</p>
-          <p className="text-gray-500">{order.deliveryAddress.city}, {order.deliveryAddress.zipCode}</p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={() => callCustomer(order.customer.phone)}
-            className="flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200"
+
+      <div className="order-details-card">
+        {/* Restaurant Info */}
+        <div className="location-card restaurant-card">
+          <h2>Pickup From</h2>
+          <div className="location-details">
+            <h3>{order.restaurantName}</h3>
+            <p>{order.restaurant?.address || order.pickupAddress || "Address not available"}</p>
+            <p>Phone: {order.restaurant?.phone || "Not available"}</p>
+          </div>
+          <button 
+            className="navigation-button"
+            onClick={() => openNavigation(order.restaurant?.address || order.pickupAddress)}
           >
-            Call Customer
+            Navigate to Restaurant
           </button>
+        </div>
+
+        {/* Customer Info */}
+        <div className="location-card customer-card">
+          <h2>Deliver To</h2>
+          <div className="location-details">
+            <h3>{order.userName}</h3>
+            <p>{order.deliveryAddress}</p>
+            <p>Phone: {order.userPhone || "Not available"}</p>
+          </div>
+          <div className="customer-actions">
+            <button 
+              className="call-button"
+              onClick={() => callCustomer(order.userPhone)}
+              disabled={!order.userPhone}
+            >
+              Call Customer
+            </button>
+            <button 
+              className="navigation-button"
+              onClick={() => openNavigation(order.deliveryAddress)}
+            >
+              Navigate to Customer
+            </button>
+          </div>
+        </div>
+
+        {/* Order Items */}
+        <div className="order-items-section">
+          <h2>Order Items</h2>
+          <ul className="items-list">
+            {order.orderItems?.map(item => (
+              <li key={item.id} className="order-item">
+                <span className="item-quantity">{item.quantity}x</span>
+                <span className="item-name">{item.menuItemName}</span>
+                <span className="item-price">{formatCurrency(item.price * item.quantity)}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Order Summary */}
+          <div className="order-summary">
+            <div className="summary-row">
+              <span>Subtotal</span>
+              <span>{formatCurrency(order.subtotal)}</span>
+            </div>
+            <div className="summary-row">
+              <span>Delivery Fee</span>
+              <span>{formatCurrency(order.deliveryFee)}</span>
+            </div>
+            <div className="summary-row">
+              <span>Tax</span>
+              <span>{formatCurrency(order.tax)}</span>
+            </div>
+            <div className="summary-row total">
+              <span>Total</span>
+              <span>{formatCurrency(order.total)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Special Instructions */}
+        {order.specialInstructions && (
+          <div className="special-instructions">
+            <h2>Special Instructions</h2>
+            <p>{order.specialInstructions}</p>
+          </div>
+        )}
+
+        {/* Delivery Notes */}
+        <div className="delivery-notes">
+          <h2>Delivery Notes</h2>
+          <textarea
+            placeholder="Add notes about the delivery (optional)"
+            value={deliveryNotes}
+            onChange={(e) => setDeliveryNotes(e.target.value)}
+          ></textarea>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="delivery-actions">
+          {currentStatus === 'READY_FOR_PICKUP' && (
+            <button 
+              className="action-button pickup-button"
+              onClick={handlePickupConfirm}
+            >
+              Confirm Pickup from Restaurant
+            </button>
+          )}
           
-          <button
-            onClick={() => openGoogleMaps(order.deliveryAddress)}
-            className="flex items-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200"
-          >
-            Navigate to Customer
-          </button>
-        </div>
-      </div>
-      
-      {/* Order Details */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Order Items</h2>
-        <ul className="divide-y divide-gray-200">
-          {order.items.map((item) => (
-            <li key={item.id} className="py-3 flex justify-between">
-              <div>
-                <p>{item.quantity}x {item.menuItem.name}</p>
-                {item.specialInstructions && (
-                  <p className="text-sm text-gray-500">Note: {item.specialInstructions}</p>
-                )}
-              </div>
-              <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-            </li>
-          ))}
-        </ul>
-        
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="flex justify-between mb-2">
-            <span>Subtotal</span>
-            <span>${order.subtotal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between mb-2">
-            <span>Delivery Fee</span>
-            <span>${order.deliveryFee.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between font-bold">
-            <span>Total</span>
-            <span>${order.totalPrice.toFixed(2)}</span>
-          </div>
-        </div>
-      </div>
-      
-      {/* Action Buttons */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        {currentStatus === 'READY_FOR_PICKUP' && (
-          <button
-            onClick={handlePickupConfirm}
-            className="w-full px-4 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600"
-          >
-            Confirm Pickup from Restaurant
-          </button>
-        )}
-        
-        {currentStatus === 'PICKED_UP' && (
-          <button
-            onClick={handleDeliveryConfirm}
-            className="w-full px-4 py-3 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600"
-          >
-            Confirm Delivery to Customer
-          </button>
-        )}
-        
-        {currentStatus === 'DELIVERED' && (
-          <div className="text-center">
-            <p className="text-green-600 font-medium mb-2">
-              ✓ Delivery completed successfully!
-            </p>
-            <p className="text-gray-500">You will be redirected to available orders shortly...</p>
-          </div>
-        )}
-      </div>
-      
-      {/* Confirmation Modal */}
-      {isConfirmModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">Confirm Delivery</h3>
-            <p className="mb-6">Are you sure you want to mark this order as delivered?</p>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={cancelConfirmation}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+          {currentStatus === 'OUT_FOR_DELIVERY' && (
+            <button 
+              className="action-button deliver-button"
+              onClick={handleDeliveryConfirm}
+            >
+              Confirm Delivery to Customer
+            </button>
+          )}
+          
+          {currentStatus === 'DELIVERED' && (
+            <div className="delivery-complete-message">
+              <p>✓ Delivery completed successfully!</p>
+              <button 
+                className="action-button new-order-button"
+                onClick={() => navigate('/delivery/available-orders')}
               >
+                Find New Orders
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Delivery Confirmation Modal */}
+      {isConfirmModalOpen && (
+        <div className="confirmation-modal">
+          <div className="modal-content">
+            <h3>Confirm Delivery</h3>
+            
+            <p>Please confirm that you've delivered the order to the customer:</p>
+            
+            <div className="confirmation-checklist">
+              <label className="checklist-item">
+                <input 
+                  type="checkbox" 
+                  checked={customerContactAttempted}
+                  onChange={() => setCustomerContactAttempted(!customerContactAttempted)} 
+                />
+                I've made contact with the customer
+              </label>
+            </div>
+            
+            <div className="modal-actions">
+              <button onClick={cancelConfirmation} className="cancel-button">
                 Cancel
               </button>
-              <button
-                onClick={completeDelivery}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              <button 
+                onClick={completeDelivery} 
+                className="confirm-button"
+                disabled={!customerContactAttempted}
               >
                 Confirm Delivery
               </button>

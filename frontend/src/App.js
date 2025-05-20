@@ -198,6 +198,16 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+               <Route
+                path="/delivery/order-history"
+                element={
+                  <ProtectedRoute>
+                    <Navbar />
+                    <DeliveryOrderPage />
+                    <Footer />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/delivery/order/:orderId"
                 element={
