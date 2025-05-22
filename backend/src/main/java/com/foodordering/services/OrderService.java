@@ -7,6 +7,7 @@ import com.foodordering.exceptions.ResourceNotFoundException;
 import com.foodordering.models.*;
 import com.foodordering.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +46,8 @@ public class OrderService {
         order.setRestaurant(restaurant);
         order.setDeliveryAddress(orderRequest.getDeliveryAddress());
         order.setSpecialInstructions(orderRequest.getSpecialInstructions());
+        order.setPhoneNumber(orderRequest.getPhoneNumber());
+
         order.setStatus(OrderStatus.PENDING); // Explicitly set status to PENDING
         
         // Set payment method
@@ -262,7 +265,13 @@ public class OrderService {
                 // or OUT_FOR_DELIVERY to DELIVERED
                 if (currentStatus == OrderStatus.READY_FOR_PICKUP && newStatus == OrderStatus.OUT_FOR_DELIVERY) {
                     order.setStatus(newStatus);
+                    // If order is being picked up, assign to this delivery user
+                    order.setDeliveryUser(user);
                 } else if (currentStatus == OrderStatus.OUT_FOR_DELIVERY && newStatus == OrderStatus.DELIVERED) {
+                    // Check if this delivery person is assigned to this order
+                    if (order.getDeliveryUser() == null || !order.getDeliveryUser().getId().equals(user.getId())) {
+                        throw new IllegalStateException("You are not authorized to mark this order as delivered");
+                    }
                     order.setStatus(newStatus);
                 } else {
                     throw new IllegalStateException("Invalid status transition for delivery personnel");
@@ -321,7 +330,7 @@ public class OrderService {
         return convertToOrderResponse(updatedOrder);
     }
     
-    // NEW METHOD: Get all orders by status (for delivery personnel to see available orders)
+    // Get all orders by status (for delivery personnel to see available orders)
     public List<OrderResponse> getOrdersByStatus(OrderStatus status) {
         List<Order> orders = orderRepository.findByStatus(status);
         
@@ -330,35 +339,94 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
     
-    // NEW METHOD: Assign order to delivery personnel
+    // Get order details for delivery personnel
+    @Transactional(readOnly = true)
+    public OrderResponse getDeliveryOrderById(String email, Long orderId) {
+        try {
+            // Find delivery personnel
+            User deliveryUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("Delivery user not found"));
+            
+            // Find order
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+            
+            // For delivery personnel, we need to be more flexible:
+            // Allow access to:
+            // - Orders in READY_FOR_PICKUP status (can be claimed by any delivery person)
+            // - Orders in OUT_FOR_DELIVERY or DELIVERED status assigned to this delivery person
+            
+            boolean isAdmin = deliveryUser.getRole() == Role.ADMIN;
+            boolean isDeliveryPersonnel = deliveryUser.getRole() == Role.DELIVERY_PERSONNEL;
+            
+            if (isAdmin) {
+                // Admin can access any order
+                return convertToOrderResponse(order);
+            } else if (isDeliveryPersonnel) {
+                // Check order status
+                boolean isReadyForPickup = OrderStatus.READY_FOR_PICKUP.equals(order.getStatus());
+                
+                // Check if this delivery person is assigned to this order
+                boolean isAssignedToThisUser = (order.getDeliveryUser() != null && 
+                                              order.getDeliveryUser().getId().equals(deliveryUser.getId()));
+                
+                if (isReadyForPickup || isAssignedToThisUser) {
+                    return convertToOrderResponse(order);
+                }
+                
+                // If we reached here, the delivery person doesn't have access to this order
+                throw new AccessDeniedException("You don't have permission to access this order");
+            } else {
+                // Not an admin or delivery personnel
+                throw new AccessDeniedException("You don't have permission to access this order");
+            }
+        } catch (Exception e) {
+            System.err.println("Error in getDeliveryOrderById: " + e.getMessage());
+            e.printStackTrace();
+            throw e; // Re-throw to let the controller handle it
+        }
+    }
+    
+    // Assign an order to a delivery person
     @Transactional
     public OrderResponse assignOrderToDelivery(String email, Long orderId) {
-        // Find delivery personnel
-        User deliveryPersonnel = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Delivery personnel not found"));
-        
-        // Verify user is delivery personnel
-        if (deliveryPersonnel.getRole() != Role.DELIVERY_PERSONNEL) {
-            throw new IllegalStateException("Only delivery personnel can accept orders for delivery");
+        try {
+            // Find delivery personnel
+            User deliveryPersonnel = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("Delivery personnel not found"));
+            
+            // Verify user is delivery personnel
+            if (deliveryPersonnel.getRole() != Role.DELIVERY_PERSONNEL) {
+                throw new IllegalStateException("Only delivery personnel can accept orders for delivery");
+            }
+            
+            // Find the order
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+            
+            // Verify order is ready for pickup
+            if (order.getStatus() != OrderStatus.READY_FOR_PICKUP) {
+                throw new IllegalStateException("Only orders that are ready for pickup can be accepted for delivery");
+            }
+            
+            // Update order status to OUT_FOR_DELIVERY
+            order.setStatus(OrderStatus.OUT_FOR_DELIVERY);
+            
+            // Set the delivery user field
+            order.setDeliveryUser(deliveryPersonnel);
+            
+            // Save updated order
+            Order updatedOrder = orderRepository.save(order);
+            
+            // Log successful assignment
+            System.out.println("Order " + orderId + " assigned to delivery user " + deliveryPersonnel.getName());
+            
+            return convertToOrderResponse(updatedOrder);
+        } catch (Exception e) {
+            System.err.println("Error assigning order to delivery: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
-        
-        // Find the order
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        
-        // Verify order is ready for pickup
-        if (order.getStatus() != OrderStatus.READY_FOR_PICKUP) {
-            throw new IllegalStateException("Only orders that are ready for pickup can be accepted for delivery");
-        }
-        
-        // Update order status to OUT_FOR_DELIVERY
-        order.setStatus(OrderStatus.OUT_FOR_DELIVERY);
-        // Could also store the delivery personnel ID in the order if needed
-        
-        // Save updated order
-        Order updatedOrder = orderRepository.save(order);
-        
-        return convertToOrderResponse(updatedOrder);
     }
     
     // Helper method to convert Order to OrderResponse
@@ -369,6 +437,14 @@ public class OrderService {
         response.setUserName(order.getUser().getName());
         response.setRestaurantId(order.getRestaurant().getId());
         response.setRestaurantName(order.getRestaurant().getName());
+        response.setPhoneNumber(order.getPhoneNumber());
+
+        
+        // Set delivery user information if available
+        if (order.getDeliveryUser() != null) {
+            response.setDeliveryUserId(order.getDeliveryUser().getId());
+            response.setDeliveryUserName(order.getDeliveryUser().getName());
+        }
         
         // Convert order items
         List<OrderResponse.OrderItemResponse> orderItemResponses = order.getOrderItems().stream()

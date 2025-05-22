@@ -22,6 +22,11 @@ public class Order {
     @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
     
+    // Add this field for delivery personnel
+    @ManyToOne
+    @JoinColumn(name = "delivery_user_id")
+    private User deliveryUser;
+    
     @Column(nullable = false)
     private BigDecimal subtotal;
     
@@ -85,6 +90,15 @@ public class Order {
         this.restaurant = restaurant;
     }
     
+    // Add getter and setter for deliveryUser
+    public User getDeliveryUser() {
+        return deliveryUser;
+    }
+    
+    public void setDeliveryUser(User deliveryUser) {
+        this.deliveryUser = deliveryUser;
+    }
+    
     public BigDecimal getSubtotal() {
         return subtotal;
     }
@@ -124,7 +138,17 @@ public class Order {
     public void setDeliveryAddress(String deliveryAddress) {
         this.deliveryAddress = deliveryAddress;
     }
-    
+    @Column(name = "phone_number")
+private String phoneNumber;
+
+public String getPhoneNumber() {
+    return phoneNumber;
+}
+
+public void setPhoneNumber(String phoneNumber) {
+    this.phoneNumber = phoneNumber;
+}
+
     public String getSpecialInstructions() {
         return specialInstructions;
     }

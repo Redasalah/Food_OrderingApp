@@ -6,14 +6,14 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.order-header {
+.delivery-order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
 
-.order-header h1 {
+.delivery-order-header h1 {
   font-size: 2rem;
   color: #333;
   margin: 0;
@@ -26,39 +26,42 @@
   font-weight: 600;
   font-size: 0.9rem;
   text-transform: uppercase;
+  background-color: #4299e1;
+  color: white;
 }
 
-.status-badge.ready_for_pickup {
-  background-color: #ffeaa7;
-  color: #d35400;
+/* Status-specific badges */
+.status-badge.READY_FOR_PICKUP {
+  background-color: #ed8936;
+  color: white;
 }
 
-.status-badge.out_for_delivery {
-  background-color: #74b9ff;
-  color: #0984e3;
+.status-badge.OUT_FOR_DELIVERY {
+  background-color: #4299e1;
+  color: white;
 }
 
-.status-badge.delivered {
-  background-color: #55efc4;
-  color: #00b894;
+.status-badge.DELIVERED {
+  background-color: #48bb78;
+  color: white;
 }
 
-.order-progress {
+/* Delivery Progress Styles */
+.delivery-progress {
   display: flex;
   justify-content: space-between;
   margin-bottom: 2.5rem;
   position: relative;
-  padding: 0 1rem;
 }
 
-.order-progress::before {
+.delivery-progress::before {
   content: '';
   position: absolute;
-  top: 2rem;
-  left: 3rem;
-  right: 3rem;
+  top: 1.5rem;
+  left: 2.5rem;
+  right: 2.5rem;
   height: 4px;
-  background-color: #ddd;
+  background-color: #e2e8f0;
   z-index: 1;
 }
 
@@ -70,186 +73,307 @@
   z-index: 2;
 }
 
-.step-icon {
-  width: 4rem;
-  height: 4rem;
-  border-radius: 50%;
-  background-color: #f1f2f6;
+.step-number {
+  width: 3rem;
+  height: 3rem;
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-size: 1.5rem;
+  justify-content: center;
+  background-color: #e2e8f0;
+  color: #718096;
+  font-weight: 700;
+  border-radius: 50%;
   margin-bottom: 0.75rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .step-label {
-  font-weight: 600;
-  color: #777;
   font-size: 0.9rem;
+  color: #718096;
+  font-weight: 500;
 }
 
-.progress-step.active .step-icon {
-  background-color: #ff4500;
+.connector-line {
+  display: none;
+}
+
+.progress-step.completed .step-number {
+  background-color: #4299e1;
   color: white;
 }
 
-.progress-step.active .step-label {
-  color: #ff4500;
+.progress-step.completed .step-label {
+  color: #4299e1;
+  font-weight: 600;
 }
 
-.order-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+/* Order Details Card */
+.order-details-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
   margin-bottom: 2rem;
 }
 
-.info-section {
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+/* Location Cards (Restaurant & Customer) */
+.location-card {
+  padding: 1.5rem;
+  border-bottom: 1px solid #edf2f7;
 }
 
-.info-section h2 {
-  margin: 0;
-  padding: 1.25rem;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #eee;
-  font-size: 1.2rem;
-  color: #333;
+.location-card:last-child {
+  border-bottom: none;
 }
 
-.info-content {
-  padding: 1.25rem;
+.location-card h2 {
+  font-size: 1.25rem;
+  color: #2d3748;
+  margin-top: 0;
+  margin-bottom: 1rem;
 }
 
-.info-content p {
-  margin: 0 0 0.75rem 0;
-  color: #555;
+.location-details {
+  margin-bottom: 1.25rem;
 }
 
-.info-content p:last-child {
-  margin-bottom: 0;
+.location-details h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+  color: #2d3748;
+}
+
+.location-details p {
+  margin: 0.5rem 0;
+  color: #4a5568;
+}
+
+.restaurant-card {
+  background-color: #fffaf0;
+}
+
+.customer-card {
+  background-color: #f0fff4;
+}
+
+.customer-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.call-button, 
+.navigation-button {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-align: center;
+  flex: 1;
+}
+
+.call-button {
+  background-color: #48bb78;
+  color: white;
+}
+
+.call-button:hover {
+  background-color: #38a169;
+}
+
+.call-button:disabled {
+  background-color: #c6f6d5;
+  color: #38a169;
+  cursor: not-allowed;
+}
+
+.navigation-button {
+  background-color: #4299e1;
+  color: white;
+}
+
+.navigation-button:hover {
+  background-color: #3182ce;
+}
+
+/* Order Items Section */
+.order-items-section {
+  padding: 1.5rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.order-items-section h2 {
+  font-size: 1.25rem;
+  color: #2d3748;
+  margin-top: 0;
+  margin-bottom: 1rem;
 }
 
 .items-list {
-  padding: 1.25rem 1.25rem 0;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
 }
 
 .order-item {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px dashed #e2e8f0;
 }
 
 .order-item:last-child {
-  margin-bottom: 0;
-}
-
-.item-info {
-  display: flex;
-  align-items: center;
+  border-bottom: none;
 }
 
 .item-quantity {
-  font-weight: 600;
-  color: #ff4500;
+  font-weight: 700;
+  color: #4a5568;
   margin-right: 0.75rem;
 }
 
 .item-name {
-  color: #333;
+  flex: 1;
+  color: #2d3748;
 }
 
 .item-price {
   font-weight: 600;
-  color: #333;
+  color: #2d3748;
 }
 
-.order-total {
+/* Order Summary */
+.order-summary {
+  background-color: #f7fafc;
   padding: 1.25rem;
-  background-color: #f8f9fa;
+  border-radius: 0.5rem;
 }
 
-.total-row {
+.summary-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
-  color: #555;
+  margin-bottom: 0.75rem;
+  color: #4a5568;
 }
 
-.total-row.grand-total {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #ddd;
+.summary-row:last-child {
+  margin-bottom: 0;
+}
+
+.summary-row.total {
   font-weight: 700;
-  color: #333;
-  font-size: 1.1rem;
+  color: #2d3748;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 1rem;
+/* Special Instructions & Notes */
+.special-instructions,
+.delivery-notes {
+  padding: 1.5rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.special-instructions h2,
+.delivery-notes h2 {
+  font-size: 1.25rem;
+  color: #2d3748;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.special-instructions p {
+  color: #4a5568;
+  background-color: #f7fafc;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 0;
+}
+
+.delivery-notes textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  min-height: 100px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #4a5568;
+  resize: vertical;
+}
+
+.delivery-notes textarea:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+/* Action Buttons */
+.delivery-actions {
+  padding: 1.5rem;
+  background-color: #f7fafc;
 }
 
 .action-button {
-  flex: 1;
+  width: 100%;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   font-weight: 600;
-  text-align: center;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
-  font-size: 1rem;
-  text-decoration: none;
+  text-align: center;
 }
 
-.action-button.primary {
-  background-color: #ff4500;
+.pickup-button {
+  background-color: #ed8936;
   color: white;
 }
 
-.action-button.primary:hover {
-  background-color: #e63e00;
+.pickup-button:hover {
+  background-color: #dd6b20;
 }
 
-.action-button.secondary {
-  background-color: #f1f2f6;
-  color: #333;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.deliver-button {
+  background-color: #48bb78;
+  color: white;
 }
 
-.action-button.secondary:hover {
-  background-color: #dfe4ea;
+.deliver-button:hover {
+  background-color: #38a169;
+}
+
+.new-order-button {
+  background-color: #4299e1;
+  color: white;
+}
+
+.new-order-button:hover {
+  background-color: #3182ce;
 }
 
 .delivery-complete-message {
-  background-color: #55efc4;
-  color: #00b894;
-  padding: 1.5rem;
-  border-radius: 8px;
   text-align: center;
-  flex: 1;
+  padding: 1.5rem;
+  background-color: #f0fff4;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .delivery-complete-message p {
-  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #2f855a;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
 }
 
-.delivery-complete-message p:last-child {
-  margin: 0;
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-.modal-overlay {
+/* Confirmation Modal */
+.confirmation-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -264,99 +388,136 @@
 
 .modal-content {
   background-color: white;
-  border-radius: 10px;
-  padding: 2rem;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .modal-content h3 {
+  font-size: 1.25rem;
+  color: #2d3748;
   margin-top: 0;
   margin-bottom: 1rem;
-  color: #333;
 }
 
-.modal-content p {
-  margin-bottom: 1.5rem;
-  color: #555;
+.confirmation-checklist {
+  margin: 1.5rem 0;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  color: #4a5568;
+}
+
+.checklist-item input {
+  margin-right: 0.75rem;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+  margin-top: 1.5rem;
 }
 
-.modal-button {
+.cancel-button,
+.confirm-button {
   padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  border-radius: 0.5rem;
   font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
 }
 
-.modal-button.primary {
-  background-color: #2950d1;
+.cancel-button {
+  background-color: #e2e8f0;
+  color: #4a5568;
+}
+
+.cancel-button:hover {
+  background-color: #cbd5e0;
+}
+
+.confirm-button {
+  background-color: #48bb78;
   color: white;
 }
 
-.modal-button.primary:hover {
-  background-color: #2950d1;
+.confirm-button:hover {
+  background-color: #38a169;
 }
 
-.modal-button.secondary {
-  background-color: #f1f2f6;
-  color: #333;
+.confirm-button:disabled {
+  background-color: #c6f6d5;
+  color: #38a169;
+  cursor: not-allowed;
 }
 
-.modal-button.secondary:hover {
-  background-color: #dfe4ea;
-}
-
+/* Loading, Error and Not Found Messages */
 .loading-message,
 .error-message,
-.not-found-message {
+.no-order-message {
   text-align: center;
-  padding: 3rem;
+  padding: 3rem 2rem;
   background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-.error-message h3,
-.not-found-message h3 {
-  color: #e74c3c;
-  margin-top: 0;
-  margin-bottom: 1rem;
+.loading-message {
+  color: #4a5568;
+  font-size: 1.1rem;
+}
+
+.error-message {
+  border-left: 5px solid #fc8181;
+}
+
+.error-message p,
+.no-order-message p {
+  color: #e53e3e;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
 }
 
 .back-button {
   display: inline-block;
-  margin-top: 1.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: #1f48b8;
+  background-color: #4299e1;
   color: white;
-  border-radius: 6px;
-  text-decoration: none;
+  border: none;
+  border-radius: 0.5rem;
   font-weight: 600;
+  text-decoration: none;
   transition: background-color 0.2s ease;
 }
 
 .back-button:hover {
-  background-color: #e63e00;
+  background-color: #3182ce;
 }
 
+/* Responsive Styles */
 @media (max-width: 768px) {
-  .order-progress {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.5rem;
-    padding: 0;
+  .delivery-order-container {
+    padding: 1rem;
   }
   
-  .order-progress::before {
+  .delivery-progress {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .delivery-progress::before {
     display: none;
   }
   
@@ -364,16 +525,29 @@
     flex-direction: row;
     width: 100%;
     gap: 1rem;
+    align-items: center;
   }
   
-  .step-icon {
+  .step-number {
     margin-bottom: 0;
-    width: 3rem;
-    height: 3rem;
-    font-size: 1.2rem;
   }
   
-  .action-buttons {
+  .connector-line {
+    display: block;
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    width: 2px;
+    height: calc(100% - 3rem);
+    background-color: #e2e8f0;
+  }
+  
+  .customer-actions {
     flex-direction: column;
+  }
+  
+  .modal-content {
+    width: 95%;
+    padding: 1.25rem;
   }
 }

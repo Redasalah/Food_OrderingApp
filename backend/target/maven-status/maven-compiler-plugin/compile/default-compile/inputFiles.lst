@@ -25,6 +25,7 @@
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/services/RestaurantService.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/config/SecurityConfig.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/exceptions/ResourceNotFoundException.java
+/Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/dtos/requests/UserProfileRequest.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/services/UserService.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/models/User.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/config/JwtConfig.java
@@ -35,6 +36,7 @@
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/dtos/responses/ApiResponse.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/models/Restaurant.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/dtos/requests/OrderRequest.java
+/Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/dtos/responses/UserProfileResponse.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/models/PaymentMethod.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/dtos/requests/MenuItemRequest.java
 /Users/akr4m/Desktop/Food_OrderingApp/backend/src/main/java/com/foodordering/repositories/RestaurantRepository.java

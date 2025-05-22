@@ -30,6 +30,7 @@ const Checkout = () => {
   
   const [formData, setFormData] = useState({
     deliveryAddress: '',
+    phoneNumber: '',   
     specialInstructions: '',
     paymentMethod: 'CREDIT_CARD',
     cardNumber: '',
@@ -62,7 +63,12 @@ const Checkout = () => {
     
     if (!formData.deliveryAddress.trim()) {
       newErrors.deliveryAddress = 'Delivery address is required';
+    }  if (!formData.phoneNumber.trim()) {
+      newErrors.phoneNumber = 'Phone number is required';
+    } else if (!/^\+?\d{10,15}$/.test(formData.phoneNumber.replace(/\s+/g, ''))) {
+      newErrors.phoneNumber = 'Enter a valid phone number';
     }
+    
     
     if (formData.paymentMethod === 'CREDIT_CARD') {
       if (!formData.cardNumber.trim()) {
@@ -101,7 +107,8 @@ const Checkout = () => {
         if (items.length === 0) {
           throw new Error('Cart is empty');
         }
-  
+      
+        
         const orderRequest = {
           restaurantId: items[0].restaurantInfo.id,
           orderItems: items.map(item => ({
@@ -205,6 +212,20 @@ const Checkout = () => {
                 ></textarea>
               </div>
             </div>
+            <div className="form-group">
+  <label htmlFor="phoneNumber">Phone Number*</label>
+  <input
+    type="tel"
+    id="phoneNumber"
+    name="phoneNumber"
+    value={formData.phoneNumber}
+    onChange={handleChange}
+    className={errors.phoneNumber ? 'input-error' : ''}
+    placeholder="e.g. +1 555-123-4567"
+  />
+  {errors.phoneNumber && <div className="error-message">{errors.phoneNumber}</div>}
+</div>
+
             
             <div className="form-section">
               <h2>Payment Method</h2>

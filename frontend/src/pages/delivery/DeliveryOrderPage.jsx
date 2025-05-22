@@ -24,7 +24,7 @@ const DeliveryOrderPage = () => {
     { id: 'OUT_FOR_DELIVERY', label: 'Out for Delivery' },
     { id: 'DELIVERED', label: 'Delivered' }
   ];
-
+  console.log("Current orderId type:", typeof orderId, "value:", orderId);
   // Fetch order details on component mount
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -38,6 +38,14 @@ const DeliveryOrderPage = () => {
           setLoading(false);
           return;
         }
+        
+        // Validate orderId exists and is valid
+        if (!orderId || orderId === "undefined" || isNaN(parseInt(orderId))) {
+          console.error("Invalid orderId:", orderId);
+          setError("Invalid order ID. Please go back and select a valid order.");
+          setLoading(false);
+          return;
+        }
   
         console.log("Fetching order with ID:", orderId);
   
@@ -48,12 +56,25 @@ const DeliveryOrderPage = () => {
         });
   
         console.log('Order details fetched:', response.data);
+        
+        // Check if response data is valid
+        if (!response.data || !response.data.id) {
+          setError("Received invalid order data from server.");
+          setLoading(false);
+          return;
+        }
+        
         setOrder(response.data);
         setCurrentStatus(response.data.status);
       } catch (err) {
         console.error('❌ Error fetching order details:', err);
-        console.error('❌ Error response:', err.response?.data);
-        setError(err.response?.data?.message || 'Failed to fetch order details. Please try again.');
+        
+        // Check if error is 404 Not Found
+        if (err.response && err.response.status === 404) {
+          setError("This order does not exist or has been deleted.");
+        } else {
+          setError(err.response?.data?.message || 'Failed to fetch order details. Please try again.');
+        }
       } finally {
         console.log("✅ Finished attempt to load order details.");
         setLoading(false);
@@ -68,6 +89,12 @@ const DeliveryOrderPage = () => {
     try {
       const token = localStorage.getItem('token');
       console.log(`Updating order ${orderId} status to ${newStatus}`);
+      
+      // Validate orderId is a valid number
+      if (!orderId || orderId === "undefined" || isNaN(parseInt(orderId))) {
+        setError("Invalid order ID. Cannot update status.");
+        return false;
+      }
       
       const response = await axios.put(
         `http://localhost:8080/api/delivery/orders/${orderId}/status`, 

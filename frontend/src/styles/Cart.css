@@ -42,12 +42,14 @@
     padding: 3rem;
     border-radius: 12px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+ 
   }
   
   .empty-cart-icon {
     font-size: 5rem;
     color: #ff4500;
     margin-bottom: 1.5rem;
+
   }
   
   .cart-empty h2 {

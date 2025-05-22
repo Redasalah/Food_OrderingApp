@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import UserProfile from './pages/UserProfile';
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -76,6 +77,41 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+<Route
+  path="/profile"
+  element={
+    <ProtectedRoute>
+      <Navbar />
+      <UserProfile />
+      <Footer />
+    </ProtectedRoute>
+  }
+/>
+
+{/* Restaurant-specific profile route */}
+<Route
+  path="/restaurant/profile"
+  element={
+    <ProtectedRoute requiredRole="RESTAURANT_STAFF">
+      <RestaurantNavbar />
+      <UserProfile />
+      <Footer />
+    </ProtectedRoute>
+  }
+/>
+
+{/* Delivery-specific profile route */}
+<Route
+  path="/delivery/profile"
+  element={
+    <ProtectedRoute requiredRole="DELIVERY_PERSONNEL">
+      <Navbar />
+      <UserProfile />
+      <Footer />
+    </ProtectedRoute>
+  }
+/>
               
               <Route
                 path="/restaurant/create"
@@ -198,26 +234,32 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-               <Route
-                path="/delivery/order-history"
-                element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <DeliveryOrderPage />
-                    <Footer />
-                  </ProtectedRoute>
-                }
-              />
+              
+
               <Route
-                path="/delivery/order/:orderId"
-                element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <DeliveryOrderPage />
-                    <Footer />
-                  </ProtectedRoute>
-                }
-              />
+  path="/delivery/order-history"
+  element={
+    <ProtectedRoute>
+      <Navbar />
+      <DeliveryOrderPage />
+      <Footer />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/delivery/order/:orderId"
+  element={
+    <ProtectedRoute>
+      <Navbar />
+      <DeliveryOrderPage />
+      <Footer />
+    </ProtectedRoute>
+  }
+/>
+
+
+
+
 
               {/* Order Routes */}
               <Route

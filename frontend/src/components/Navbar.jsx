@@ -49,6 +49,20 @@ const Navbar = () => {
     }
   };
 
+  // Get the appropriate profile path based on user role
+  const getProfilePath = () => {
+    if (!user) return '/profile';
+    
+    switch (user.role) {
+      case 'RESTAURANT_STAFF':
+        return '/restaurant/profile';
+      case 'DELIVERY_PERSONNEL':
+        return '/delivery/profile';
+      default:
+        return '/profile';
+    }
+  };
+
   const renderNavItems = () => {
     // If no user is logged in, show login/signup
     if (!user) {
@@ -60,15 +74,15 @@ const Navbar = () => {
             </Link>
           </li>
           <li className="navbar-item">
-          <Link to="/restaurants" className="navbar-link">
-  Restaurants
-</Link></li>
+            <Link to="/restaurants" className="navbar-link">
+              Restaurants
+            </Link>
+          </li>
           <li className="navbar-item">
             <Link to="/signup" className={`navbar-link ${isActive('/signup') ? 'active' : ''}`}>
               Sign Up
             </Link>
           </li>
-          
         </>
       );
     }
@@ -138,11 +152,7 @@ const Navbar = () => {
               Available Orders
             </Link>
           </li>
-          <li className="navbar-item">
-            <Link to="/Delivery/order-history" className={`navbar-link ${isActive('/Delivery/order-history') ? 'active' : ''}`}>
-              Order History
-            </Link>
-          </li>
+       
         </>
       );
     }
@@ -167,7 +177,10 @@ const Navbar = () => {
           {user && (
             <li className="navbar-item user-profile">
               <div className="navbar-profile">
-                <span className="navbar-username">{user.name}</span>
+                <div className="navbar-username-container">
+                  <span className="navbar-username">{user.name}</span>
+                  <Link to={getProfilePath()} className="profile-link">Profile</Link>
+                </div>
                 <button 
                   className="navbar-logout" 
                   onClick={handleLogout}

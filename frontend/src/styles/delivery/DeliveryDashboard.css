@@ -1,140 +1,252 @@
-/* src/pages/delivery/DeliveryDashboard.css */
-.delivery-dashboard {
+/* DeliveryDashboard.css */
+/* Main layout styles */
+.delivery-dashboard-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  font-family: Arial, sans-serif;
+  padding: 2rem;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  color: #333;
 }
 
-.dashboard-header {
+.delivery-dashboard-header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 1rem;
+}
+
+.delivery-dashboard-header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.delivery-dashboard-header p {
+  font-size: 1.1rem;
+  color: #718096;
+}
+
+/* Loading and error states */
+.delivery-loading-container {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 30px;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
 }
 
-.app-title {
-  font-size: 24px;
-  font-weight: bold;
+.delivery-loading-container p {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #718096;
 }
 
-.delivery-badge {
-  background-color: #3B82F6;
+.delivery-loading-container button {
+  padding: 0.75rem 1.5rem;
+  background-color: #4299e1;
   color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-left: 10px;
-  font-size: 12px;
-}
-
-.dashboard-nav {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.dashboard-nav a {
-  text-decoration: none;
-  color: #555;
-  font-weight: 500;
-}
-
-.dashboard-nav a.active {
-  color: #000;
-  font-weight: bold;
-}
-
-.logout-btn {
-  background: none;
   border: none;
-  color: #888;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.dashboard-content h1 {
-  margin: 0 0 10px 0;
-  font-size: 24px;
+.delivery-loading-container button:hover {
+  background-color: #3182ce;
 }
 
-.stats-grid {
+/* Statistics cards section */
+.delivery-stats-container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
 }
 
-.stat-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 20px;
-  text-align: center;
+.delivery-stat-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #edf2f7;
 }
 
-.stat-card h3 {
-  margin: 0 0 10px 0;
-  color: #666;
-  font-size: 14px;
+.delivery-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
 }
 
-.stat-value {
-  font-size: 24px;
-  font-weight: bold;
+.delivery-stat-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #718096;
+  margin-bottom: 1rem;
 }
 
-.action-buttons {
+.delivery-stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+}
+
+/* Action buttons */
+.delivery-actions-container {
   display: flex;
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
 }
 
-.btn {
-  flex: 1;
-  padding: 15px;
-  text-align: center;
+.delivery-action-button {
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
   text-decoration: none;
-  border-radius: 8px;
+  text-align: center;
+  flex: 1;
+  min-width: 200px;
+  transition: all 0.2s ease;
 }
 
-.btn.primary {
-  background-color: #1A5F1A;
+.delivery-action-button.primary {
+  background-color: #4299e1;
   color: white;
+  box-shadow: 0 4px 6px rgba(66, 153, 225, 0.25);
 }
 
-.btn.secondary {
-  border: 1px solid #1A5F1A;
-  color: #1A5F1A;
+.delivery-action-button.primary:hover {
+  background-color: #3182ce;
+  box-shadow: 0 6px 8px rgba(66, 153, 225, 0.35);
 }
 
-.recent-deliveries h2 {
-  margin-bottom: 20px;
+.delivery-action-button.secondary {
+  background-color: white;
+  color: #4299e1;
+  border: 1px solid #4299e1;
+}
+
+.delivery-action-button.secondary:hover {
+  background-color: #ebf8ff;
+}
+
+/* Recent deliveries section */
+.recent-deliveries-container {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+}
+
+.recent-deliveries-container h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.no-deliveries-message {
+  text-align: center;
+  color: #718096;
+  padding: 2rem 0;
+  font-style: italic;
+}
+
+.recent-deliveries-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
 
 .delivery-item {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 15px;
+  background-color: #f7fafc;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+  transition: transform 0.2s ease;
 }
 
-.delivery-header {
+.delivery-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+}
+
+.delivery-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #edf2f7;
 }
 
-.status-badge {
-  background-color: #48BB78;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
+.delivery-item-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
 }
 
-.delivery-details {
-  display: flex;
-  justify-content: space-between;
+.delivery-status {
+  background-color: #c6f6d5;
+  color: #2f855a;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
-.text-right {
-  text-align: right;
+.delivery-item-details p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.delivery-item-details strong {
+  color: #4a5568;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .delivery-dashboard-container {
+    padding: 1rem;
+  }
+  
+  .delivery-stats-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .recent-deliveries-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .delivery-dashboard-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .delivery-stats-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .delivery-action-button {
+    flex: 100%;
+  }
+  
+  .delivery-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .delivery-status {
+    margin-top: 0.5rem;
+  }
 }

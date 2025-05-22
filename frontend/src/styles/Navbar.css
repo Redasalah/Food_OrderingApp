@@ -27,15 +27,15 @@
   
   /* Role-specific colors */
   .navbar.customer .navbar-logo {
-    color: #ff5a5f; /* Default red for customers */
+    color: #ff5a5f; 
   }
   
   .navbar.restaurant_staff .navbar-logo {
-    color: #ff8c00; /* Orange for restaurant */
+    color: #ff8c00; 
   }
   
   .navbar.delivery_personnel .navbar-logo {
-    color: #4a90e2; /* Blue for delivery */
+    color: #4a90e2; 
   }
   
   .role-badge {
@@ -178,6 +178,21 @@
     transform: rotate(-45deg);
   }
   
+.navbar-username-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.profile-link {
+  font-size: 0.8rem;
+  color: #ff5a5f;
+  text-decoration: none;
+}
+
+.profile-link:hover {
+  text-decoration: underline;
+}
   /* User profile item styling */
   .user-profile {
     margin-left: auto; /* Push profile to the right */
@@ -227,6 +242,7 @@
     .navbar-profile {
       width: 100%;
       justify-content: space-between;
+      margin-left: 10px;
     }
     
     .user-profile {

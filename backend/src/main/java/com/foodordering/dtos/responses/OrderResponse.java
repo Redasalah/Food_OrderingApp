@@ -14,6 +14,14 @@ public class OrderResponse {
     private String userName;
     private Long restaurantId;
     private String restaurantName;
+
+    private String phoneNumber;
+
+    
+    // Add these fields for delivery user information
+    private Long deliveryUserId;
+    private String deliveryUserName;
+    
     private List<OrderItemResponse> orderItems;
     private BigDecimal subtotal;
     private BigDecimal deliveryFee;
@@ -25,7 +33,7 @@ public class OrderResponse {
     private PaymentMethod paymentMethod;
     private LocalDateTime createdAt;
     
-    // Nested OrderItemResponse class
+    // Inner class for order items
     public static class OrderItemResponse {
         private Long id;
         private Long menuItemId;
@@ -34,7 +42,7 @@ public class OrderResponse {
         private BigDecimal price;
         private String specialInstructions;
         
-        // Getters and Setters
+        // Getters and setters
         public Long getId() {
             return id;
         }
@@ -84,7 +92,7 @@ public class OrderResponse {
         }
     }
     
-    // Getters and Setters for OrderResponse
+    // Getters and setters
     public Long getId() {
         return id;
     }
@@ -123,6 +131,23 @@ public class OrderResponse {
     
     public void setRestaurantName(String restaurantName) {
         this.restaurantName = restaurantName;
+    }
+    
+    // Add getters and setters for delivery user fields
+    public Long getDeliveryUserId() {
+        return deliveryUserId;
+    }
+    
+    public void setDeliveryUserId(Long deliveryUserId) {
+        this.deliveryUserId = deliveryUserId;
+    }
+    
+    public String getDeliveryUserName() {
+        return deliveryUserName;
+    }
+    
+    public void setDeliveryUserName(String deliveryUserName) {
+        this.deliveryUserName = deliveryUserName;
     }
     
     public List<OrderItemResponse> getOrderItems() {
@@ -180,6 +205,16 @@ public class OrderResponse {
     public void setSpecialInstructions(String specialInstructions) {
         this.specialInstructions = specialInstructions;
     }
+
+
+public String getPhoneNumber() {
+    return phoneNumber;
+}
+
+public void setPhoneNumber(String phoneNumber) {
+    this.phoneNumber = phoneNumber;
+}
+
     
     public OrderStatus getStatus() {
         return status;

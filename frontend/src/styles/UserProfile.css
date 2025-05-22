@@ -1,0 +1,228 @@
+/* src/styles/UserProfile.css */
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .profile-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  
+  .profile-header h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .profile-header p {
+    font-size: 1.2rem;
+    color: #666;
+  }
+  
+  .profile-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .form-group {
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: all 0.3s;
+  }
+  
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: #ff4500;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.1);
+  }
+  
+  .disabled-input {
+    background-color: #f8f8f8;
+    cursor: not-allowed;
+  }
+  
+  .form-group small {
+    display: block;
+    color: #888;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+  }
+  
+  .input-error {
+    border-color: #e74c3c !important;
+  }
+  
+  .error-message {
+    color: #e74c3c;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+  
+  .success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-actions {
+    margin-top: 1rem;
+  }
+  
+  .save-button {
+    background-color: #ff4500;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .save-button:hover {
+    background-color: #e63e00;
+  }
+  
+  .save-button:disabled {
+    background-color: #ffab91;
+    cursor: not-allowed;
+  }
+  
+  /* Delivery personnel specific styles */
+  .delivery-specific-section {
+    background-color: #f8f9fa;
+    margin-top: 2rem;
+  }
+  
+  .delivery-specific-section h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .delivery-specific-section p {
+    color: #666;
+    margin-bottom: 1.5rem;
+  }
+  
+  .availability-toggle {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    margin-right: 1rem;
+  }
+  
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    border-radius: 34px;
+    transition: .4s;
+  }
+  
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+  }
+  
+  input:checked + .toggle-slider {
+    background-color: #4CAF50;
+  }
+  
+  input:focus + .toggle-slider {
+    box-shadow: 0 0 1px #4CAF50;
+  }
+  
+  input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+  }
+  
+  .toggle-label {
+    font-weight: 600;
+  }
+  
+  .delivery-settings {
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 6px;
+  }
+  
+  .delivery-settings h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 1.2rem;
+  }
+  
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    font-size: 1.2rem;
+    color: #666;
+  }
+  
+  @media (max-width: 768px) {
+    .profile-container {
+      padding: 1rem;
+    }
+    
+    .profile-card {
+      padding: 1.5rem;
+    }
+  }

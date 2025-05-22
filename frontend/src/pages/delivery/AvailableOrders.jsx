@@ -46,7 +46,6 @@ const AvailableOrders = () => {
     // Clean up interval on component unmount
     return () => clearInterval(interval);
   }, []);
-
   const handleAcceptOrder = async (orderId) => {
     if (!orderId || orderId === "undefined") {
       console.error("❌ Invalid orderId:", orderId);
@@ -70,16 +69,16 @@ const AvailableOrders = () => {
   
       console.log('✅ Order accepted successfully:', response.data);
   
-      // ✅ Use returned ID from backend response
-      const acceptedOrderId = response.data?.id;
-  
-      if (!acceptedOrderId || acceptedOrderId === 'undefined') {
-        console.error("❌ Navigation failed — invalid returned order ID:", acceptedOrderId);
-        setError("Failed to identify the accepted order. Please refresh and try again.");
-        return;
+      // Use the ID from the response, or fallback to original ID if needed
+      const acceptedOrderId = response.data?.id || orderId;
+      
+      // Ensure ID is valid before navigating
+      if (acceptedOrderId && acceptedOrderId !== "undefined") {
+        // Convert to string for URL path and navigate
+        navigate(`/delivery/order/${acceptedOrderId.toString()}`);
+      } else {
+        setError("Failed to identify the accepted order. Please try again.");
       }
-  
-      navigate(`/delivery/order/${acceptedOrderId}`);
     } catch (err) {
       console.error("❌ Error accepting order:", err);
       console.error("❌ Error details:", err.response?.data);
@@ -89,7 +88,6 @@ const AvailableOrders = () => {
       );
     }
   };
-  
   
   
 
